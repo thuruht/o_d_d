@@ -1,0 +1,23 @@
+{
+  "name": "overland-destinations-database",
+  "version": "3.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --local --persist",
+    "start": "wrangler dev --local --persist",
+    "db:migrate": "wrangler d1 migrations apply odd-db"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.592.0",
+    "@aws-sdk/s3-request-presigner": "^3.592.0",
+    "@noble/hashes": "^1.4.0",
+    "hono": "^4.4.12",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240605.0",
+    "@types/uuid": "^9.0.8",
+    "wrangler": "^4.19.1"
+  }
+}

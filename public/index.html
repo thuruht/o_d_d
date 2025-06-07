@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O.D.D.Map - Overland Destinations Database</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand-container">
+                <a href="/" class="nav-brand">O.D.D.Map</a>
+                <div class="nav-subheading">Overland Destinations Database</div>
+            </div>
+            <div class="nav-controls">
+                <button id="nav-info-btn" class="btn btn-secondary" data-i18n="info">Info</button>
+                <div class="nav-search">
+                    <input type="search" id="search-input" placeholder="Search destinations or addresses..." aria-label="Search destinations">
+                    <button id="search-button" class="btn btn-primary" data-i18n="search_btn">Go</button>
+                </div>
+                <button id="filters-button" class="btn btn-secondary" data-i18n="filters_btn">Filters</button>
+            </div>
+            <div class="nav-links">
+                <div id="auth-links">
+                    <a href="#" id="nav-login" class="nav-item" data-i18n="login">Login</a>
+                    <a href="#" id="nav-register" class="nav-item" data-i18n="register">Register</a>
+                </div>
+                <div id="user-links" class="hidden">
+                    <div class="user-menu-container">
+                        <div id="user-avatar-container"></div>
+                        <div class="user-menu">
+                            <span id="user-greeting" class="nav-item"></span>
+                            <div class="user-dropdown">
+                                <a href="#" id="nav-my-profile" class="nav-item" data-i18n="my_profile">My Profile</a>
+                                <a href="#" id="nav-my-favorites" class="nav-item" data-i18n="my_favorites">My Favorites</a>
+                                <a href="#" id="nav-add-destination" class="nav-item" data-i18n="add_destination">Add Destination</a>
+                                <a href="#" id="nav-admin" class="nav-item hidden" data-i18n="admin">Admin Panel</a>
+                                <a href="#" id="nav-logout" class="nav-item" data-i18n="logout">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="language-selector">
+                    <select id="language-select" aria-label="Select language">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div id="notification-container"></div>
+    <main id="main-content">
+        <div id="map-container">
+             <div class="map-controls-container">
+                <button id="map-home-btn" aria-label="Reset map view">⌂</button>
+                <button id="map-location-btn" aria-label="Go to my location">◎</button>
+            </div>
+        </div>
+    </main>
+    <div id="modal-backdrop" class="hidden"></div>
+    <div id="modal-container"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/modals.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>
