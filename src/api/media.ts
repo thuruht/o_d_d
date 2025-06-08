@@ -1,12 +1,12 @@
 // Corrected src/api/media.ts
 import { Hono } from 'hono';
 import { env } from 'hono/adapter';
-import { verifyAuth } from '../utils/auth';
-import { Bindings } from '../types'; // Using the centralized, correctly named types file
+import { authMiddleware } from '../utils/auth';
+import { Env } from '../types';
 
-const media = new Hono<{ Bindings: Bindings }>();
+export const mediaRouter = new Hono<{ Bindings: Env }>();
 
-media.post('/upload-url', verifyAuth, async (c) => {
+mediaRouter.post('/upload-url', authMiddleware(), async (c) => {
     try {
         // FIX: Uses the correct binding name `MEDIA_BUCKET` from your config.
         const { MEDIA_BUCKET } = env(c);
@@ -27,8 +27,8 @@ media.post('/upload-url', verifyAuth, async (c) => {
             expiresIn: 3600 // URL expires in 1 hour
         });
         
-        // IMPROVEMENT: Returns the `key` so the frontend can store it in the DB.
-        return c.json({ uploadUrl: signedUrl, key: key });
+        // More standard naming:
+        return c.json({ signedUrl: signedUrl, key: key });
 
     } catch (e: any) {
         // IMPROVEMENT: Added robust error handling.
@@ -36,5 +36,3 @@ media.post('/upload-url', verifyAuth, async (c) => {
         return c.json({ error: 'Failed to create upload URL', details: e.message }, 500);
     }
 });
-
-export default media;
