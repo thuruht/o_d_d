@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { C, Env, User, AuthPayload } from '../types';
 import { hashPassword, comparePasswords } from '../utils/crypto';
 import { createToken, authMiddleware } from '../utils/auth';
+import { setCookie, deleteCookie } from 'hono/cookie';
 
 export const authRouter = new Hono<{ Bindings: Env }>();
 
@@ -47,7 +48,7 @@ authRouter.post('/login', async (c: C) => {
     }
 
     const user = await c.env.DB.prepare(
-        'SELECT id, password_hash, role, suspended FROM users WHERE email = ?'
+        'SELECT id, username, password_hash, role, suspended FROM users WHERE email = ?'
     ).bind(email.toLowerCase()).first<User>();
 
     if (!user || !user.password_hash) {
@@ -66,16 +67,37 @@ authRouter.post('/login', async (c: C) => {
     const payload: AuthPayload = {
         userId: user.id,
         role: user.role,
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7)
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7) // 7 days
     };
 
     const token = await createToken(payload, c.env.JWT_SECRET);
+    
+    // Set the token as an HTTP-only cookie
+    setCookie(c, 'session', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Strict',
+        maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+        path: '/'
+    });
 
     return c.json({
         message: 'Login successful',
-        token,
         user: { id: user.id, role: user.role, username: user.username }
+        // token no longer sent in response body
     });
+});
+
+// Add logout endpoint
+authRouter.post('/logout', async (c: C) => {
+    // Clear the session cookie
+    deleteCookie(c, 'session', {
+        httpOnly: true,
+        secure: true,
+        path: '/'
+    });
+    
+    return c.json({ message: 'Logged out successfully' });
 });
 
 authRouter.get('/me', authMiddleware(), async (c: C) => {

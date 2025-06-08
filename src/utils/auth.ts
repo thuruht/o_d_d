@@ -1,5 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import { C, AuthPayload, UserRole } from '../types';
+import { getCookie } from 'hono/cookie';
 
 async function createToken(payload: AuthPayload, secret: string): Promise<string> {
     const header = { alg: 'HS256', typ: 'JWT' };
@@ -55,34 +56,25 @@ async function verifyToken(token: string, secret: string): Promise<AuthPayload |
 
 export { createToken, verifyToken };
 
-export const authMiddleware = (requiredRole?: UserRole) => {
-    return createMiddleware<C>(async (c, next) => {
-        const authHeader = c.req.header('Authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return c.json({ error: 'Unauthorized: Missing token' }, 401);
-        }
-        const token = authHeader.substring(7);
-        const payload = await verifyToken(token, c.env.JWT_SECRET);
+export const authMiddleware = () => {
+    return async (c: C, next: () => Promise<void>) => {
+        const token = getCookie(c, 'session');
         
-        if (!payload) {
-            return c.json({ error: 'Unauthorized: Invalid token' }, 401);
+        if (!token) {
+            return c.json({ error: 'Authentication required' }, 401);
         }
 
-        const user = await c.env.DB.prepare("SELECT suspended FROM users WHERE id = ?").bind(payload.userId).first<{ suspended: number }>();
-        if (!user || user.suspended === 1) {
-             return c.json({ error: 'Unauthorized: User account is suspended' }, 403);
-        }
-
-        if (requiredRole) {
-            const userRole = payload.role;
-            const roleHierarchy: Record<UserRole, number> = { 'user': 0, 'moderator': 1, 'admin': 2 };
-
-            if (roleHierarchy[userRole] < roleHierarchy[requiredRole]) {
-                return c.json({ error: 'Forbidden: Insufficient permissions' }, 403);
+        try {
+            const payload = await verifyToken(token, c.env.JWT_SECRET);
+            
+            if (!payload) {
+                return c.json({ error: 'Invalid or expired session' }, 401);
             }
+            
+            c.set('user', payload);
+            await next();
+        } catch (error) {
+            return c.json({ error: 'Invalid or expired session' }, 401);
         }
-
-        c.set('user', payload);
-        await next();
-    });
+    };
 };

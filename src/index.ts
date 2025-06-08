@@ -2,12 +2,11 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
-import { Bindings } from './types';
+import { Env } from './types';
 
-import api from './api';
 import { usersRouter } from './api/users';
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Env }>();
 
 // Enable CORS for all routes
 app.use('/api/*', cors());
@@ -48,5 +47,4 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-// Only one default export
 export default app;
