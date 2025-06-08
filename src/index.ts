@@ -1,56 +1,23 @@
+// src/index.ts
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
-import { Env } from './types';
-import { apiRouter } from './api';
+import { serveStatic } from 'hono/cloudflare-workers';
+import { Bindings } from './types';
 
-export const app = new Hono<{ Bindings: Env }>();
+import api from './api';
 
-app.use('*', logger());
-app.use(
-  '/api/*',
-  cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+const app = new Hono<{ Bindings: Bindings }>();
 
-app.route('/api', apiRouter);
+// Enable CORS for all routes
+app.use('/api/*', cors());
 
-app.get('*', async (c, next) => {
-  const url = new URL(c.req.url);
-  if (url.pathname.startsWith('/api/')) {
-    await next();
-    return;
-  }
-  return c.env.ASSETS.fetch(c.req);
-});
+// API routes
+app.route('/api', api);
 
-app.notFound(async (c) => {
-  const url = new URL(c.req.url);
-  if (url.pathname.startsWith('/api/')) {
-    return c.json({ error: 'Not Found' }, 404);
-  }
-  
-  try {
-    const assetRequest = new Request(new URL(c.req.url).origin);
-    const spaPage = await c.env.ASSETS.fetch(assetRequest);
-    return new Response(spaPage.body, {
-      headers: spaPage.headers,
-      status: 200
-    });
-  } catch (e) {
-     return c.text('Not Found', 404);
-  }
-});
+// Serve static assets from the /public folder
+app.get('*', serveStatic({ root: './' }));
 
-app.onError((err, c) => {
-  console.error(`Hono Error:`, err);
-  if ('getResponse' in err) {
-    return err.getResponse();
-  }
-  return c.json({ error: 'Internal Server Error', message: err.message }, 500);
-});
+// Handle 404 for assets not found by falling back to index.html for SPAs
+app.get('*', serveStatic({ path: './index.html' }));
 
 export default app;
