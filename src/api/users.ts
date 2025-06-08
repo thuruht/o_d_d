@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware } from '../utils/auth';
 import { Env } from '../types';
 
 // Create properly typed Hono router
