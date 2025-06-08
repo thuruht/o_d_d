@@ -1,12 +1,13 @@
-import express from 'express';
-import { authMiddleware } from 'path-to-auth-middleware';
-import { env } from 'path-to-env';
+import { Hono } from 'hono';
+import { authMiddleware } from '../middleware/auth';
+import { Env } from '../types';
 
-const usersRouter = express.Router();
+// Create properly typed Hono router
+const usersRouter = new Hono<{ Bindings: Env, Variables: { user: any } }>();
 
-usersRouter.post('/me/avatar-upload-url', authMiddleware(), async (c: C) => {
+usersRouter.post('/me/avatar-upload-url', authMiddleware(), async (c) => {
     const user = c.get('user');
-    const { contentType } = await c.req.json<{ contentType: string }>();
+    const { contentType } = await c.req.json();
 
     if (!contentType) {
         return c.json({ error: 'contentType is required' }, 400);
@@ -14,10 +15,9 @@ usersRouter.post('/me/avatar-upload-url', authMiddleware(), async (c: C) => {
 
     const fileExtension = contentType.split('/')[1] || 'png';
     const objectKey = `avatars/${user.userId}/avatar.${fileExtension}?v=${Date.now()}`;
-    const { MEDIA_BUCKET } = env(c);
 
     try {
-        const signedUrl = await MEDIA_BUCKET.createSignedUrl('putObject', {
+        const signedUrl = await c.env.MEDIA_BUCKET.createSignedUrl('putObject', {
             key: objectKey,
             contentType: contentType,
         }, {

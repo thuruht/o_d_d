@@ -5,6 +5,7 @@ import { serveStatic } from 'hono/cloudflare-workers';
 import { Bindings } from './types';
 
 import api from './api';
+import { usersRouter } from './api/users';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -12,7 +13,12 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('/api/*', cors());
 
 // API routes
-app.route('/api', api);
+const apiRouter = new Hono();
+apiRouter.route('/users', usersRouter);
+// Add other routers
+
+// Mount API under /api prefix
+app.route('/api', apiRouter);
 
 // Serve static assets from the /public folder
 app.get('*', serveStatic({ root: './' }));
@@ -42,14 +48,5 @@ app.use('*', async (c, next) => {
   await next();
 });
 
+// Only one default export
 export default app;
-
-// src/api/index.ts
-import express from 'express';
-// ...other imports
-
-const apiRouter = express.Router();
-// ...your route definitions
-
-// Add this line at the end:
-export default apiRouter;
