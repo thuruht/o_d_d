@@ -1,3 +1,9 @@
+import express from 'express';
+import { authMiddleware } from 'path-to-auth-middleware';
+import { env } from 'path-to-env';
+
+const usersRouter = express.Router();
+
 usersRouter.post('/me/avatar-upload-url', authMiddleware(), async (c: C) => {
     const user = c.get('user');
     const { contentType } = await c.req.json<{ contentType: string }>();
@@ -25,4 +31,6 @@ usersRouter.post('/me/avatar-upload-url', authMiddleware(), async (c: C) => {
         return c.json({ error: 'Could not generate upload URL' }, 500);
     }
 });
+
+export { usersRouter };
 

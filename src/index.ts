@@ -43,3 +43,13 @@ app.use('*', async (c, next) => {
 });
 
 export default app;
+
+// src/api/index.ts
+import express from 'express';
+// ...other imports
+
+const apiRouter = express.Router();
+// ...your route definitions
+
+// Add this line at the end:
+export default apiRouter;
