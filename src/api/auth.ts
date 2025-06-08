@@ -70,6 +70,10 @@ authRouter.post('/login', async (c: C) => {
         exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7) // 7 days
     };
 
+    if (!c.env.JWT_SECRET) {
+        console.error('JWT_SECRET is not configured');
+        return c.json({ error: 'Server configuration error' }, 500);
+    }
     const token = await createToken(payload, c.env.JWT_SECRET);
     
     // Set the token as an HTTP-only cookie

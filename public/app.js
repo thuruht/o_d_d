@@ -416,7 +416,10 @@ const translations = {
                     await checkLoginState();
                     modalManager.hide();
                     showToast(t('login_success'), 'success');
-                } catch (error) { console.error('Login failed'); }
+                } catch (error) { 
+                    console.error('Login failed'); 
+                    showToast('Login failed. Please check your credentials and try again.', 'error');
+                }
             } else if (target.id === 'register-submit') {
                 const username = document.getElementById('register-username').value.trim();
                 const email = document.getElementById('register-email').value.trim();
@@ -738,12 +741,17 @@ const translations = {
         document.getElementById('nav-register').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('register'); });
         document.getElementById('nav-logout').addEventListener('click', (e) => { 
             e.preventDefault(); 
-            apiRequest('/auth/logout', 'POST').then(() => {
-                currentUser = null; 
-                updateUserUI(null); 
-                showToast(t('logout_success'), 'success'); 
-                loadDestinations();
-            });
+            apiRequest('/auth/logout', 'POST')
+                .then(() => {
+                    currentUser = null; 
+                    updateUserUI(null); 
+                    showToast(t('logout_success'), 'success'); 
+                    loadDestinations();
+                })
+                .catch(error => { // Add this catch block
+                    console.error('Logout failed:', error);
+                    showToast(t('logout_error'), 'error');
+                });
         });
         document.getElementById('nav-add-destination').addEventListener('click', (e) => { e.preventDefault(); if (!currentUser) return showToast(t('error_please_login'), 'error'); modalManager.show('add-destination', (modal) => { const center = map.getCenter(); modal.querySelector('#loc-lat').value = center.lat; modal.querySelector('#loc-lng').value = center.lng; }); });
         document.getElementById('filters-button').addEventListener('click', () => modalManager.show('filters'));
