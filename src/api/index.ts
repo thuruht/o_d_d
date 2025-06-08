@@ -1,4 +1,4 @@
-import express from 'express';
+import { Hono } from 'hono';
 import { Env } from '../types';
 import { authRouter } from './auth';
 import { locationsRouter } from './locations';
@@ -10,16 +10,16 @@ import { reportsRouter } from './reports';
 import { favoritesRouter } from './favorites';
 import { usersRouter } from './users';
 
-const apiRouter = express.Router();
+const apiRouter = new Hono();
 
-apiRouter.use('/auth', authRouter);
-apiRouter.use('/users', usersRouter);
-apiRouter.use('/locations', locationsRouter);
-apiRouter.use('/submissions', submissionsRouter);
-apiRouter.use('/votes', votingRouter);
-apiRouter.use('/admin', adminRouter);
-apiRouter.use('/media', mediaRouter);
-apiRouter.use('/reports', reportsRouter);
-apiRouter.use('/favorites', favoritesRouter);
+apiRouter.route('/auth', authRouter);
+apiRouter.route('/users', usersRouter);
+apiRouter.route('/locations', locationsRouter);
+apiRouter.route('/submissions', submissionsRouter);
+apiRouter.route('/votes', votingRouter);
+apiRouter.route('/admin', adminRouter);
+apiRouter.route('/media', mediaRouter);
+apiRouter.route('/reports', reportsRouter);
+apiRouter.route('/favorites', favoritesRouter);
 
 export default apiRouter;

@@ -125,7 +125,7 @@ const translations = {
             'tap-potable': 'Robinet Potable', 'tap-non-potable': 'Robinet Non Potable', 'fountain': 'Fontaine', 'natural-source': 'Source Naturelle',
             '110v': '110V', '220v': '220V', 'usb': 'USB', 'yes': 'Oui', '1g/2g': '1G/2G', '3g': '3G', '4g/lte': '4G/LTE', '5g': '5G'
       }
-    };z
+    };
 
     const t = (key) => (translations[currentLanguage]?.[key] || translations['en']?.[key] || key.replace(/-/g, ' '));
     const showToast = (message, type = 'info') => {
@@ -142,8 +142,8 @@ const translations = {
     };
     const apiRequest = async (endpoint, method = 'GET', body = null) => {
         const headers = { 'Content-Type': 'application/json' };
-        const options = { 
-            method, 
+        const options = {
+            method,
             headers,
             credentials: 'include' // Important for cookies
         };
@@ -238,7 +238,7 @@ const translations = {
             if (searchTerm) params.append('q', searchTerm); // searchTerm is used in API query, not directly in HTML here
             if (currentFilters.types.length > 0) params.append('type', currentFilters.types.join(','));
             if (currentFilters.amenities.length > 0) params.append('amenities', currentFilters.amenities.join(','));
-            
+
             let destinations;
             if (favoritesViewActive) {
                 destinations = await apiRequest('/favorites');
@@ -248,7 +248,7 @@ const translations = {
             } else {
                 destinations = await apiRequest(`/locations?${params.toString()}`);
             }
-            
+
             locationsLayer.clearLayers();
             if (destinations.length === 0) {
                 if (!favoritesViewActive && (searchTerm || currentFilters.types.length > 0 || currentFilters.amenities.length > 0)) {
@@ -266,8 +266,8 @@ const translations = {
                 map.flyToBounds(group.getBounds().pad(0.2));
             }
             return destinations;
-        } catch (error) { 
-            console.error('Failed to load destinations'); 
+        } catch (error) {
+            console.error('Failed to load destinations');
             return [];
         }
     };
@@ -313,9 +313,9 @@ const translations = {
                     <button class="btn btn-success btn-sm" data-action="upload-media" data-location-id="${DOMPurify.sanitize(String(dest.id))}">${t('upload_media')}</button>
                     <button class="btn btn-danger btn-sm" data-action="report-destination" data-location-id="${DOMPurify.sanitize(String(dest.id))}">${t('report_destination')}</button>
                 </div>`;
-            
+
             const popup = L.popup().setLatLng([dest.latitude, dest.longitude]).setContent(popupContent).openOn(map);
-            
+
             popup.getElement().addEventListener('click', (e) => {
                 const action = e.target.dataset.action;
                 const locationIdFromDataset = e.target.dataset.locationId; // Already sanitized if it came from popupContent
@@ -392,10 +392,10 @@ const translations = {
         } catch (error) { console.error("Could not show user profile"); }
     };
     const checkLoginState = async () => {
-        try { 
-            currentUser = await apiRequest('/auth/me'); 
-        } catch (error) { 
-            currentUser = null; 
+        try {
+            currentUser = await apiRequest('/auth/me');
+        } catch (error) {
+            currentUser = null;
         }
         updateUserUI(currentUser);
     };
@@ -416,32 +416,32 @@ const translations = {
                     await checkLoginState();
                     modalManager.hide();
                     showToast(t('login_success'), 'success');
-                } catch (error) { 
-                    console.error('Login failed'); 
+                } catch (error) {
+                    console.error('Login failed');
                     showToast('Login failed. Please check your credentials and try again.', 'error');
                 }
             } else if (target.id === 'register-submit') {
                 const username = document.getElementById('register-username').value.trim();
                 const email = document.getElementById('register-email').value.trim();
                 const password = document.getElementById('register-password').value;
-                
+
                 if (!validateName(username)) {
                     return showToast('Username must be between 2-50 characters.', 'error');
                 }
-                
+
                 if (!validateEmail(email)) {
                     return showToast('Please enter a valid email address.', 'error');
                 }
-                
+
                 if (!validatePassword(password)) {
                     return showToast('Password must be at least 8 characters.', 'error');
                 }
-                
-                try { 
-                    await apiRequest('/auth/register', 'POST', { username, email, password }); 
-                    modalManager.hide(); 
-                    showToast('Registration successful! Please log in.', 'success'); 
-                    modalManager.show('login'); 
+
+                try {
+                    await apiRequest('/auth/register', 'POST', { username, email, password });
+                    modalManager.hide();
+                    showToast('Registration successful! Please log in.', 'success');
+                    modalManager.show('login');
                 } catch (error) { console.error('Registration failed'); }
             } else if (target.id === 'add-loc-submit') {
                 const properties = {};
@@ -490,33 +490,33 @@ const translations = {
                 const userId = target.dataset.userId;
                 const newRole = target.value;
                 const oldRole = target.dataset.currentRole;
-                
+
                 if (newRole !== oldRole && !confirm(`Are you sure you want to change this user's role from ${oldRole} to ${newRole}?`)) {
                     target.value = oldRole; // Reset if canceled
                     return;
                 }
-                
-                try { 
-                    await apiRequest(`/admin/users/${userId}`, 'PUT', { role: newRole }); 
-                    showToast('User role updated.', 'success'); 
-                } catch(e) { 
+
+                try {
+                    await apiRequest(`/admin/users/${userId}`, 'PUT', { role: newRole });
+                    showToast('User role updated.', 'success');
+                } catch(e) {
                     target.value = oldRole; // Reset on error
-                    showToast('Failed to update role.', 'error'); 
+                    showToast('Failed to update role.', 'error');
                 }
             } else if (target.matches('.admin-submission-reject')) {
                 const subId = target.dataset.id;
                 const reason = prompt("Please provide a reason for rejecting this submission:");
-                
+
                 if (!reason) {
                     showToast('Rejection requires a reason.', 'warning');
                     return;
                 }
-                
-                try { 
-                    await apiRequest(`/admin/submissions/${subId}/reject`, 'POST', { reason }); 
-                    showToast('Submission rejected.', 'success'); 
-                    showAdminPanel(); 
-                } catch (e) { 
+
+                try {
+                    await apiRequest(`/admin/submissions/${subId}/reject`, 'POST', { reason });
+                    showToast('Submission rejected.', 'success');
+                    showAdminPanel();
+                } catch (e) {
                     showToast('Failed to reject.', 'error');
                 }
             } else if (target.matches('.admin-tab')) {
@@ -538,20 +538,20 @@ const translations = {
                 const reportId = target.dataset.id;
                 const locationId = target.dataset.location;
                 const resolution = prompt("Enter resolution notes or action taken:");
-                
+
                 if (!resolution) {
                     showToast('Resolution requires notes.', 'warning');
                     return;
                 }
-                
-                try { 
-                    await apiRequest(`/admin/reports/${reportId}/resolve`, 'POST', { 
-                        resolution, 
-                        location_id: locationId 
-                    }); 
-                    showToast('Report resolved.', 'success'); 
-                    showAdminPanel(); 
-                } catch (e) { 
+
+                try {
+                    await apiRequest(`/admin/reports/${reportId}/resolve`, 'POST', {
+                        resolution,
+                        location_id: locationId
+                    });
+                    showToast('Report resolved.', 'success');
+                    showAdminPanel();
+                } catch (e) {
                     showToast('Failed to resolve report.', 'error');
                 }
             }
@@ -590,20 +590,20 @@ const translations = {
             showToast(t('Address lookup failed.'), 'error');
         }
     };
-    
+
     const showAdminPanel = async () => {
         if (!currentUser || currentUser.role === 'user') return;
         modalManager.show('admin-panel');
         const contentEl = document.getElementById('admin-panel-content');
         contentEl.innerHTML = 'Loading...';
-        
+
         try {
             const [users, submissions, reports] = await Promise.all([
                 apiRequest('/admin/users'),
                 apiRequest('/admin/submissions'),
                 apiRequest('/admin/reports')
             ]);
-            
+
             contentEl.innerHTML = `
                 <div class="admin-filters">
                     <select id="admin-user-filter">
@@ -612,39 +612,39 @@ const translations = {
                         <option value="moderator">Moderators</option>
                         <option value="admin">Admins</option>
                     </select>
-                    
+
                     <select id="admin-submission-filter">
                         <option value="all">All Submissions</option>
                         <option value="pending">Pending</option>
                         <option value="location">Locations</option>
                         <option value="media">Media</option>
                     </select>
-                    
+
                     <select id="admin-report-filter">
                         <option value="all">All Reports</option>
                         <option value="open">Open</option>
                         <option value="resolved">Resolved</option>
                     </select>
-                    
+
                     <input type="text" id="admin-search" placeholder="Search...">
                 </div>
-                
+
                 <div id="admin-tab-users" class="admin-tab-content active">
                     <ul class="admin-panel-list">${renderUsersList(users)}</ul>
                 </div>
-                
+
                 <div id="admin-tab-submissions" class="admin-tab-content">
                     <ul class="admin-panel-list">${renderSubmissionsList(submissions)}</ul>
                 </div>
-                
+
                 <div id="admin-tab-reports" class="admin-tab-content">
                     <ul class="admin-panel-list">${renderReportsList(reports)}</ul>
                 </div>
             `;
-            
+
             // Add filter event listeners
             setupAdminFilters(users, submissions, reports);
-            
+
         } catch(e) {
             contentEl.innerHTML = 'Could not load admin panel data.';
             showToast('Could not load admin panel data.', 'error');
@@ -657,8 +657,8 @@ const translations = {
             <li>
                 <span>${DOMPurify.sanitize(user.username)}</span>
                 <span>${DOMPurify.sanitize(user.email)}</span>
-                <select class="form-control admin-role-select" 
-                        data-user-id="${user.id}" 
+                <select class="form-control admin-role-select"
+                        data-user-id="${user.id}"
                         data-current-role="${user.role}">
                     <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
                     <option value="moderator" ${user.role === 'moderator' ? 'selected' : ''}>Moderator</option>
@@ -687,25 +687,25 @@ const translations = {
         const submissionFilter = document.getElementById('admin-submission-filter');
         const reportFilter = document.getElementById('admin-report-filter');
         const searchInput = document.getElementById('admin-search');
-        
+
         userFilter.addEventListener('change', () => {
             const selectedRole = userFilter.value;
             const filteredUsers = users.filter(user => selectedRole === 'all' || user.role === selectedRole);
             document.getElementById('admin-tab-users').innerHTML = `<ul class="admin-panel-list">${renderUsersList(filteredUsers)}</ul>`;
         });
-        
+
         submissionFilter.addEventListener('change', () => {
             const selectedStatus = submissionFilter.value;
             const filteredSubmissions = submissions.filter(sub => selectedStatus === 'all' || sub.status === selectedStatus);
             document.getElementById('admin-tab-submissions').innerHTML = `<ul class="admin-panel-list">${renderSubmissionsList(filteredSubmissions)}</ul>`;
         });
-        
+
         reportFilter.addEventListener('change', () => {
             const selectedStatus = reportFilter.value;
             const filteredReports = reports.filter(rep => selectedStatus === 'all' || (selectedStatus === 'open' ? rep.resolved === false : rep.resolved === true));
             document.getElementById('admin-tab-reports').innerHTML = `<ul class="admin-panel-list">${renderReportsList(filteredReports)}</ul>`;
         });
-        
+
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase();
             const filteredUsers = users.filter(user => user.username.toLowerCase().includes(query) || user.email.toLowerCase().includes(query));
@@ -714,7 +714,7 @@ const translations = {
                 return sub.submission_type.toLowerCase().includes(query) || data.name.toLowerCase().includes(query);
             });
             const filteredReports = reports.filter(rep => rep.reason.toLowerCase().includes(query) || rep.notes.toLowerCase().includes(query));
-            
+
             document.getElementById('admin-tab-users').innerHTML = `<ul class="admin-panel-list">${renderUsersList(filteredUsers)}</ul>`;
             document.getElementById('admin-tab-submissions').innerHTML = `<ul class="admin-panel-list">${renderSubmissionsList(filteredSubmissions)}</ul>`;
             document.getElementById('admin-tab-reports').innerHTML = `<ul class="admin-panel-list">${renderReportsList(filteredReports)}</ul>`;
@@ -739,13 +739,13 @@ const translations = {
         });
         document.getElementById('nav-login').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('login'); });
         document.getElementById('nav-register').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('register'); });
-        document.getElementById('nav-logout').addEventListener('click', (e) => { 
-            e.preventDefault(); 
+        document.getElementById('nav-logout').addEventListener('click', (e) => {
+            e.preventDefault();
             apiRequest('/auth/logout', 'POST')
                 .then(() => {
-                    currentUser = null; 
-                    updateUserUI(null); 
-                    showToast(t('logout_success'), 'success'); 
+                    currentUser = null;
+                    updateUserUI(null);
+                    showToast(t('logout_success'), 'success');
                     loadDestinations();
                 })
                 .catch(error => { // Add this catch block
@@ -760,7 +760,7 @@ const translations = {
         document.getElementById('nav-my-profile').addEventListener('click', (e) => { e.preventDefault(); if (!currentUser) return; modalManager.show('edit-profile', () => { document.getElementById('profile-bio').value = currentUser.bio || ''; document.getElementById('profile-website').value = currentUser.website || ''; document.getElementById('profile-contact').value = currentUser.contact || ''; }); });
         document.getElementById('nav-admin').addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(); });
         document.getElementById('nav-info-btn').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('info'); });
-        
+
         const searchInput = document.getElementById('search-input');
         const searchButton = document.getElementById('search-button');
         const performSearch = async () => {
