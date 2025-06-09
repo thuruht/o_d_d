@@ -1218,7 +1218,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const tabContentElement = document.getElementById(tabContentId);
 
-                if (tabContentElement) tabContentElement.classList.add('active');
+                if (tabContentElement) {
+                    tabContentElement.classList.add('active');
+                    document.querySelectorAll('.info-tab').forEach(tab => {
+                        tab.setAttribute('aria-selected', tab === target ? 'true' : 'false');
+                    });
+                    document.querySelectorAll('.info-tab-content').forEach(content => {
+                        content.setAttribute('aria-hidden', content !== tabContentElement ? 'true' : 'false');
+                    });
+                }
 
             } else if (target.matches('.info-tab')) {
                 document.querySelectorAll('.info-tab, .info-tab-content').forEach(el => el.classList.remove('active'));
@@ -1606,7 +1614,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const filteredUsers = users.filter(user => user.username.toLowerCase().includes(query) || user.email.toLowerCase().includes(query));
 
-            const filteredSubmissions = submissions.filter(sub => {
+                    const typeMatch = sub.submission_type ? sub.submission_type.toLowerCase().includes(query) : false;
                 try {
                     if (!sub) return false;
                     
