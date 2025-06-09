@@ -883,7 +883,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalManager.create('admin-panel', t('admin_panel_title'), `<div class="admin-tabs"><button class="admin-tab active" data-tab="users">Users</button><button class="admin-tab" data-tab="submissions">Submissions</button><button class="admin-tab" data-tab="reports">Reports</button></div><div id="admin-panel-content"></div>`, [{ id: 'admin-close', class: 'btn-secondary', text: t('close') }]);
 
-        modalManager.create('info', t('info_title'), `<div><p>This is the Overland Destinations Database, an open-source project for travelers to share great places.</p><p>Entries by the "system" user are a.i. generated for beta testing only! Please help us by adding your own entries and sharing the site with other travelers. :)</p></div>`, [{ id: 'info-close', class: 'btn-secondary', text: t('close') }]);
+        // --- UPDATED: New tabbed info modal ---
+        modalManager.create('info', t('info_title'), `
+            <div class="info-tabs">
+                <button class="info-tab active" data-tab="about">About</button>
+                <button class="info-tab" data-tab="contribute">How to Contribute</button>
+                <button class="info-tab" data-tab="conduct">Community Philosophy</button>
+            </div>
+            <div class="info-tab-content active" id="info-tab-about">
+                <p>This is the Overland Destinations Database, an open-source project for travelers to share great places.</p>
+                <p>Entries by the "system" user are a.i. generated for beta testing only! Please help us by adding your own entries and sharing the site with other travelers. :)</p>
+            </div>
+            <div class="info-tab-content" id="info-tab-contribute">
+                <h1>A Guide to Great Contributions</h1>
+                <p>Thank you for helping our community grow! This map is built by travelers like you. Here are a few quick tips to make your contributions awesome.</p>
+                <h3>What We Love to See</h3>
+                <ul>
+                    <li><strong>Honest, detailed descriptions.</strong> The best tips come from personal experience. Tell us <em>why</em> a place was special. Was the view incredible? Did the mechanic have the right part? Was it just a peaceful spot to have lunch? Your story is what makes a location useful.</li>
+                    <li><strong>Helpful photos.</strong> A picture of the campsite, the storefront, or the view is perfect. A picture of your smiling face is also great, but maybe not as the primary photo for the location!</li>
+                    <li><strong>Unique and useful spots.</strong> We especially love those hard-to-find places—a remote water source, a great wild camping spot, or a shop with rare supplies.</li>
+                    <li><strong>Spontaneous joys!</strong> Feel free to add that <strong>Scenic Viewpoint</strong> you stopped at for five minutes or that perfect <strong>Day Use / Picnic Area</strong>. Not every great spot is an overnight stay.</li>
+                </ul>
+                <h3>Our Core Principle: Be a Good Traveler</h3>
+                <p>The most important rule is to be respectful. That means respecting the <strong>environment</strong> (leave no trace!), <strong>local communities</strong> (be a good guest!), and <strong>each other</strong> (be kind!).</p>
+                <p>Please don't add any places that are illegal, on private property without permission, or would encourage others to do harm.</p>
+                <p>That's it! Thank you for sharing your journey with us.</p>
+            </div>
+            <div class="info-tab-content" id="info-tab-conduct">
+                <h1>O.D.D.Map Community Philosophy</h1>
+                <p>This project is built by and for a global community of travelers. We have three guiding principles that we ask everyone to share.</p>
+                <h3>1. Be Kind</h3>
+                <p>This is the most important rule. Treat fellow users, contributors, and the people you meet on your travels with respect, patience, and empathy. We are all here to share knowledge and help each other explore the world. There is a zero-tolerance policy for harassment, hate speech, or personal attacks.</p>
+                <h3>2. Respect the Place</h3>
+                <p>Every point on this map is someone's home. Be considerate of local communities, their customs, and their way of life. Ask for permission before camping on private land, support local businesses, and always be a good ambassador for the overlanding community. The data we collect should never facilitate disrespect or violating the wishes of local people.</p>
+                <h3>3. Leave It Better</h3>
+                <p>We have a shared responsibility to protect the natural environments we travel through. This means packing out all waste, respecting wildlife, and only using designated fire pits when and where it's safe. Do not add places to this map that would encourage environmental damage.</p>
+                <p>This is a community-moderated project. We trust you to contribute responsibly and help us by reporting any content that does not align with these principles. Thank you for being a positive part of our community.</p>
+            </div>
+        `, [{ id: 'info-close', class: 'btn-secondary', text: t('close') }]);
 
     };
 
@@ -1079,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const payload = { location_id: document.getElementById('report-location-id').value, reason: document.getElementById('report-reason').value, notes: document.getElementById('report-notes').value };
 
-                try { await apiRequest('/reports', 'POST', payload); modalManager.hide(); showToast(t('report_sent'), 'success'); } catch (error) { console.error('Failed to submit report'); }
+                try { await apiRequest('/reports', 'POST', payload); modalManager.hide(); showToast(t('report_sent'), 'success'); } catch (error) { console.error('Failed to submit report', error); }
 
             } else if (target.id === 'media-submit') {
 
@@ -1183,6 +1220,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (tabContentElement) tabContentElement.classList.add('active');
 
+            } else if (target.matches('.info-tab')) {
+                document.querySelectorAll('.info-tab, .info-tab-content').forEach(el => el.classList.remove('active'));
+                target.classList.add('active');
+                const tabContentId = `info-tab-${target.dataset.tab}`;
+                const tabContentElement = document.getElementById(tabContentId);
+                if (tabContentElement) tabContentElement.classList.add('active');
             } else if (target.matches('[data-action="add-here"]')) {
 
                 if (!currentUser) return showToast(t('error_please_login'), 'error');
@@ -1564,11 +1607,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const filteredUsers = users.filter(user => user.username.toLowerCase().includes(query) || user.email.toLowerCase().includes(query));
 
             const filteredSubmissions = submissions.filter(sub => {
-
-                const data = JSON.parse(sub.data);
-
-                return sub.submission_type.toLowerCase().includes(query) || data.name.toLowerCase().includes(query);
-
+                try {
+                    if (!sub) return false;
+                    
+                    // Parse the data safely
+                    const data = sub.data ? JSON.parse(sub.data) : {};
+                    
+                    // Safely access properties with optional chaining
+                    const typeMatch = sub.submission_type?.toLowerCase?.()?.includes(query) || false;
+                    const nameMatch = data?.name?.toLowerCase?.()?.includes(query) || false;
+                    
+                    return typeMatch || nameMatch;
+                } catch (err) {
+                    console.error('Error filtering submission:', err);
+                    return false;
+                }
             });
 
             const filteredReports = reports.filter(rep => rep.reason.toLowerCase().includes(query) || rep.notes.toLowerCase().includes(query));
