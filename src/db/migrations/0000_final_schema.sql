@@ -29,9 +29,9 @@ CREATE TABLE locations (
         'border-crossing', 'checkpoint', 'warning', 'other'
     )),
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
-    created_by TEXT NOT NULL,
+    created_by TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    properties TEXT,
+    properties TEXT, -- Stores JSON object with amenities and features
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 

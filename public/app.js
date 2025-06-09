@@ -591,11 +591,17 @@ const translations = {
         }
     };
 
+    // REFACTORED ADMIN PANEL LOGIC
     const showAdminPanel = async () => {
         if (!currentUser || currentUser.role === 'user') return;
         modalManager.show('admin-panel');
         const contentEl = document.getElementById('admin-panel-content');
-        contentEl.innerHTML = 'Loading...';
+        if (!contentEl) return;
+
+        // Clear previous listeners and content
+        const newContentEl = contentEl.cloneNode(false);
+        contentEl.parentNode.replaceChild(newContentEl, contentEl);
+        newContentEl.innerHTML = 'Loading...';
 
         try {
             const [users, submissions, reports] = await Promise.all([
@@ -603,8 +609,8 @@ const translations = {
                 apiRequest('/admin/submissions'),
                 apiRequest('/admin/reports')
             ]);
-
-            contentEl.innerHTML = `
+            
+            newContentEl.innerHTML = `
                 <div class="admin-filters">
                     <select id="admin-user-filter">
                         <option value="all">All Users</option>
@@ -646,7 +652,7 @@ const translations = {
             setupAdminFilters(users, submissions, reports);
 
         } catch(e) {
-            contentEl.innerHTML = 'Could not load admin panel data.';
+            newContentEl.innerHTML = 'Could not load admin panel data.';
             showToast('Could not load admin panel data.', 'error');
         }
     };

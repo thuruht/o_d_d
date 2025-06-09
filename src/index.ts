@@ -1,7 +1,7 @@
 // src/index.ts
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { serveStatic } from 'hono/cloudflare-workers';
+import { serveStatic } from 'hono/middleware';
 import { Env } from './types';
 
 // Import all the API routers
