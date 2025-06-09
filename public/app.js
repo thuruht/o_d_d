@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         'mechanic', 'fuel', 'propane', 'water', 'dump-station', 'laundry', 'showers', 'wifi-spot', 'good-signal-spot',
 
-        'medical', 'pet-services', 'financial', 'vehicle-insurance', 'vehicle-shipping', 'vehicle-storage', 'recycling-waste',
+        'medical', 'pet-services', 'financial', 'recycling-waste',
 
         'border-crossing', 'checkpoint', 'consulate-embassy', 'warning', 'overnight-prohibited', 'other'
 
@@ -107,9 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'medical': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-medical-cross" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3a1 1 0 0 1 1 1v4.535l3.93 -2.905a1 1 0 0 1 1.255 .183l.184 .243a1 1 0 0 1 -.183 1.255l-2.905 3.93h4.535a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4.535l2.905 3.93a1 1 0 0 1 -.183 1.255l-.243 .184a1 1 0 0 1 -1.255 -.183l-3.93 -2.905v4.535a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-4.535l-3.93 2.905a1 1 0 0 1 -1.255 -.183l-.184 -.243a1 1 0 0 1 .183 -1.255l2.905 -3.93h-4.535a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h4.535l-2.905 -3.93a1 1 0 0 1 .183 -1.255l.243 -.184a1 1 0 0 1 1.255 .183l3.93 2.905v-4.535a1 1 0 0 1 1 -1h4z" /></svg>`,
         'pet-services': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-dog-bowl" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12l-.235 .235a3.536 3.536 0 1 0 5.018 -4.928l-4.783 4.693" /><path d="M20 12c0 4.418 -3.582 8 -8 8s-8 -3.582 -8 -8c0 -4.32 3.46 -7.834 7.749 -7.994l.251 .004" /></svg>`,
         'financial': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-currency-dollar" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2" /><path d="M12 3v3m0 12v3" /></svg>`,
-        'vehicle-insurance': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-certificate" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 8v-3a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-1" /><path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M8 11h8v4h-8z" /></svg>`,
-        'vehicle-shipping': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-ship" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1" /><path d="M4 18l-1 -5h18l-1 5" /><path d="M5 13v-6h8l4 6" /><path d="M7 7v-4h-1" /></svg>`,
-        'vehicle-storage': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-parking-circle" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 16v-8h2.667c.736 0 1.333 .672 1.333 1.5s-.597 1.5 -1.333 1.5h-2.667" /></svg>`,
         'recycling-waste': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-recycle" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17l-2 2l-2 -2" /><path d="M10 19v-2a2 2 0 0 1 2 -2h2" /><path d="M14 13l2 -2l2 2" /><path d="M16 11v2a2 2 0 0 1 -2 2h-2" /><path d="M10 7l-2 2l2 2" /><path d="M8 9h2a2 2 0 0 1 2 2v2" /></svg>`,
         'border-crossing': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-border-style-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 18v.01" /><path d="M8 18v.01" /><path d="M12 18v.01" /><path d="M16 18v.01" /><path d="M20 18v.01" /><path d="M18 12h2" /><path d="M11 12h2" /><path d="M4 12h2" /><path d="M4 6v.01" /><path d="M8 6v.01" /><path d="M12 6v.01" /><path d="M16 6v.01" /><path d="M20 6v.01" /></svg>`,
         'checkpoint': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hand-stop" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 13v-8a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v7" /><path d="M11 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v7" /><path d="M14 4a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-7" /><path d="M5 10a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z" /></svg>`,
@@ -179,9 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             'good-signal-spot': 'Good Signal Spot', 'recycling-waste': 'Recycling / Waste', 'consulate-embassy': 'Consulate / Embassy',
 
-            'financial': 'Financial', 'vehicle-insurance': 'Vehicle Insurance', 'vehicle-shipping': 'Vehicle Shipping',
-
-            'vehicle-storage': 'Vehicle Storage', 'overnight-prohibited': 'Overnight Prohibited', 'other': 'Other'
+            'financial': 'Financial', 'overnight-prohibited': 'Overnight Prohibited', 'other': 'Other'
 
         },
 
@@ -243,9 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             'good-signal-spot': 'Lugar con Buena Señal', 'recycling-waste': 'Reciclaje / Basura', 'consulate-embassy': 'Consulado / Embajada',
 
-            'financial': 'Financiero', 'vehicle-insurance': 'Seguro de Vehículo', 'vehicle-shipping': 'Envío de Vehículo',
-
-            'vehicle-storage': 'Almacenamiento de Vehículo', 'overnight-prohibited': 'Pernoctar Prohibido', 'other': 'Otro',
+            'financial': 'Financiero', 'overnight-prohibited': 'Pernoctar Prohibido', 'other': 'Otro',
 
             'toilets': 'Baños', 'water_source': 'Fuente de Agua', 'power': 'Electricidad', 'cell_signal': 'Señal Celular', 'pet_friendly': 'Apto para Mascotas', 'tent_friendly': 'Apto para Tiendas', 'open_24/7': 'Abierto 24/7',
 
@@ -315,9 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             'good-signal-spot': 'Bon Signal', 'recycling-waste': 'Recyclage / Déchets', 'consulate-embassy': 'Consulat / Ambassade',
 
-            'financial': 'Financier', 'vehicle-insurance': 'Assurance Véhicule', 'vehicle-shipping': 'Expédition de Véhicule',
-
-            'vehicle-storage': 'Stockage de Véhicule', 'overnight-prohibited': 'Nuitée Interdite', 'other': 'Autre',
+            'financial': 'Financier', 'overnight-prohibited': 'Nuitée Interdite', 'other': 'Autre',
 
             'toilets': 'Toilettes', 'water_source': 'Source d\'Eau', 'power': 'Électricité', 'cell_signal': 'Signal Cellulaire', 'pet_friendly': 'Animaux Admis', 'tent_friendly': 'Tentes Admises', 'open_24/7': 'Ouvert 24/7',
 
@@ -476,31 +467,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const initMap = () => {
-
-        map = L.map('map-container', { zoomControl: false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
-
+        map = L.map('map-container', { zoomControl: false, attributionControl: false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
+        // --- Base Layers (your existing map styles) ---
         const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' });
-
         const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' });
-
         const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap' });
-
         const baseMaps = { "Street": street, "Satellite": satellite, "Topographic": topo };
 
+        // --- NEW: Overlay Layers for Trails ---
+        // These layers will be placed on top of the base map.
+        const hikingTrails = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
+        });
+
+        const cyclingTrails = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
+        });
+
+        const overlayMaps = {
+            "Hiking Trails": hikingTrails,
+            "Cycling Trails": cyclingTrails
+        };
+
+        // --- Initialize the map with the Street layer active ---
         street.addTo(map);
 
-        L.control.layers(baseMaps, null, { position: 'topright', collapsed: true }).addTo(map);
-
+        // --- Locations and Layer Control ---
         locationsLayer = L.layerGroup().addTo(map);
+
+        // --- UPDATED: Add both baseMaps and the new overlayMaps to the layer control ---
+        L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(map);
 
         loadDestinations();
 
-
-
         map.on('click', onMapClick);
-
     };
 
     const onMapClick = (e) => {
@@ -1497,7 +1499,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <button class="btn btn-danger btn-sm admin-submission-reject" data-id="${sub.id}">✗</button>
 
-                </div>
+                    </div>
 
             </li>`;
 
@@ -1745,4 +1747,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    init();
+        init();
+    });

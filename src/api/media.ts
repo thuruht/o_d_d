@@ -1,38 +1,45 @@
-// Corrected src/api/media.ts
 import { Hono } from 'hono';
-import { env } from 'hono/adapter';
-import { authMiddleware } from '../utils/auth';
+import { nanoid } from 'nanoid';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+import { requireAuth } from '../utils/auth';
 import { Env } from '../types';
 
 export const mediaRouter = new Hono<{ Bindings: Env }>();
 
-mediaRouter.post('/upload-url', authMiddleware(), async (c) => {
+mediaRouter.post(
+  '/upload-url',
+  requireAuth,
+  zValidator('json', z.object({
+    filename: z.string(),
+    contentType: z.string(),
+    locationId: z.string(),
+  })),
+  async (c) => {
+    const user = c.get('user');
+    const { filename, contentType, locationId } = c.req.valid('json');
+    const key = `locations/${locationId}/${user.id}/${nanoid()}-${filename}`;
+
     try {
-        // FIX: Uses the correct binding name `MEDIA_BUCKET` from your config.
-        const { MEDIA_BUCKET } = env(c);
-        const user = c.get('user');
-        const { filename, contentType } = await c.req.json();
+      // --- FIX: Uses the correct R2 method 'createPresignedUrl' with the proper object structure. ---
+      const signedUrl = await c.env.MEDIA_BUCKET.createPresignedUrl({
+        key,
+        method: 'PUT',
+        options: {
+          expires: 3600, // URL expires in 1 hour
+          metadata: {
+            contentType,
+            userId: user.id,
+            locationId,
+          },
+        },
+      });
 
-        if (!filename || !contentType) {
-            return c.json({ error: 'Filename and contentType are required' }, 400);
-        }
-
-        const key = `uploads/${user.id}/${Date.now()}-${filename}`;
-
-        // Uses the modern `createSignedUrl` method.
-        const signedUrl = await MEDIA_BUCKET.createSignedUrl('putObject', {
-            key: key,
-            contentType: contentType,
-        }, {
-            expiresIn: 3600 // URL expires in 1 hour
-        });
-        
-        // More standard naming:
-        return c.json({ signedUrl: signedUrl, key: key });
+      return c.json({ signedUrl, key });
 
     } catch (e: any) {
-        // IMPROVEMENT: Added robust error handling.
-        console.error('Failed to create upload URL:', e);
-        return c.json({ error: 'Failed to create upload URL', details: e.message }, 500);
+      console.error('Failed to create upload URL:', e);
+      return c.json({ error: 'Failed to create upload URL', details: e.message }, 500);
     }
-});
+  }
+);

@@ -1,80 +1,102 @@
-import { createMiddleware } from 'hono/factory';
-import { C, AuthPayload, UserRole } from '../types';
-import { getCookie } from 'hono/cookie';
+import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+import { nanoid } from 'nanoid';
+import { eq } from 'drizzle-orm';
+import { users } from '../db/schema';
+import { requireAuth } from '../utils/auth';
+import { Env, UserProfile } from '../types';
 
-async function createToken(payload: AuthPayload, secret: string): Promise<string> {
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const encodedHeader = btoa(JSON.stringify(header)).replace(/=+$/, '');
-    const encodedPayload = btoa(JSON.stringify(payload)).replace(/=+$/, '');
-    
-    const dataToSign = `${encodedHeader}.${encodedPayload}`;
-    
-    const key = await crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(secret),
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-    );
+export const usersRouter = new Hono<{ Bindings: Env }>();
 
-    const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(dataToSign));
-    const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=+$/, '');
-
-    return `${dataToSign}.${encodedSignature}`;
-}
-
-async function verifyToken(token: string, secret: string): Promise<AuthPayload | null> {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-
-    const [encodedHeader, encodedPayload, encodedSignature] = parts;
-    const dataToSign = `${encodedHeader}.${encodedPayload}`;
-
-    const key = await crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(secret),
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['verify']
-    );
-
+// GET /api/users/:id
+usersRouter.get('/:id', async (c) => {
+    const { id } = c.req.param();
     try {
-        const signature = Uint8Array.from(atob(encodedSignature), c => c.charCodeAt(0));
-        const isValid = await crypto.subtle.verify('HMAC', key, signature, new TextEncoder().encode(dataToSign));
+        const user = await c.env.DB.select({
+            id: users.id,
+            username: users.username,
+            avatar_url: users.avatar_url,
+            bio: users.bio,
+            website: users.website,
+            role: users.role,
+        }).from(users).where(eq(users.id, id)).get();
 
-        if (!isValid) return null;
-
-        const payload = JSON.parse(atob(encodedPayload));
-        if (payload.exp < Date.now() / 1000) {
-            return null;
+        if (!user) {
+            return c.json({ error: 'User not found' }, 404);
         }
-        return payload as AuthPayload;
-    } catch (e) {
-        return null;
+        return c.json(user);
+    } catch (error) {
+        console.error('Failed to fetch user:', error);
+        return c.json({ error: 'Failed to fetch user' }, 500);
     }
-}
+});
 
-export { createToken, verifyToken };
 
-export const authMiddleware = () => {
-    return async (c: C, next: () => Promise<void>) => {
-        const token = getCookie(c, 'session');
-        
-        if (!token) {
-            return c.json({ error: 'Authentication required' }, 401);
-        }
+// GET /api/users/me
+usersRouter.get('/me', requireAuth, (c) => {
+    const user = c.get('user');
+    return c.json(user);
+});
 
+
+// PUT /api/users/me
+usersRouter.put(
+    '/me',
+    requireAuth,
+    zValidator('json', UserProfile.pick({ bio: true, website: true, contact: true, avatar_url: true }).partial()),
+    async (c) => {
+        const user = c.get('user');
+        const profileData = c.req.valid('json');
         try {
-            const payload = await verifyToken(token, c.env.JWT_SECRET);
-            
-            if (!payload) {
-                return c.json({ error: 'Invalid or expired session' }, 401);
-            }
-            
-            c.set('user', payload);
-            await next();
+            const updatedUser = await c.env.DB.update(users)
+                .set({ ...profileData, updated_at: new Date() })
+                .where(eq(users.id, user.id))
+                .returning()
+                .get();
+
+            return c.json(updatedUser);
         } catch (error) {
-            return c.json({ error: 'Invalid or expired session' }, 401);
+            console.error('Failed to update profile:', error);
+            return c.json({ error: 'Failed to update profile' }, 500);
         }
-    };
-};
+    }
+);
+
+
+// POST /api/users/me/avatar-upload-url
+usersRouter.post(
+    '/me/avatar-upload-url',
+    requireAuth,
+    zValidator('json', z.object({
+      contentType: z.string(),
+    })),
+    async (c) => {
+      const user = c.get('user');
+      const { contentType } = c.req.valid('json');
+      const key = `avatars/${user.id}/${nanoid()}.jpg`;
+  
+      try {
+        // --- FIX: Uses the correct R2 method 'createPresignedUrl' with the proper object structure. ---
+        const signedUrl = await c.env.MEDIA_BUCKET.createPresignedUrl({
+          key,
+          method: 'PUT',
+          options: {
+            expires: 600, // 10 minutes
+            metadata: {
+              contentType,
+              userId: user.id,
+            },
+          },
+        });
+  
+        // This requires you to set `R2_PUBLIC_URL` in your wrangler.jsonc / .dev.vars
+        const avatar_url = `${c.env.R2_PUBLIC_URL}/${key}`;
+  
+        return c.json({ signedUrl, avatar_url });
+      } catch (error) {
+        console.error('Error generating avatar upload URL:', error);
+        return c.json({ error: 'Could not generate upload URL' }, 500);
+    }
+    }
+);

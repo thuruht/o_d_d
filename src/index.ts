@@ -1,7 +1,6 @@
 // src/index.ts
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { serveStatic } from 'hono/middleware';
 import { Env } from './types';
 
 // Import all the API routers
@@ -33,7 +32,7 @@ app.use('*', async (c, next) => {
     "default-src 'self'; " +
     "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com; " +
     "style-src 'self' https://unpkg.com https://fonts.bunny.net 'unsafe-inline'; " +
-    "img-src 'self' https://*.tile.openstreetmap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com data:; " +
+    "img-src 'self' https://*.tile.openstreetmap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com https://*.waymarkedtrails.org data:; " + // Added waymarkedtrails
     "font-src 'self' https://fonts.bunny.net; " +
     "connect-src 'self' https://nominatim.openstreetmap.org; " +
     "frame-src 'none'; " +
@@ -45,8 +44,13 @@ app.use('*', async (c, next) => {
 // --- API Setup ---
 const api = new Hono();
 
-// Enable CORS for all API routes
-api.use('/*', cors());
+// More restrictive CORS configuration
+api.use('/*', cors({
+  origin: ['https://your-app-domain.com', 'https://another-allowed-domain.com'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  maxAge: 86400, // 24 hours
+  credentials: true //  to support cookies/auth
+}));
 
 // Mount all API routers
 api.route('/admin', adminRouter);
@@ -63,10 +67,23 @@ api.route('/votes', votingRouter);
 app.route('/api', api);
 
 // --- Static Asset Serving for SPA ---
-// This should come after API routes.
-// Serve static assets from the /public folder
-app.get('*', serveStatic({ root: './public' }));
-// Handle 404s by falling back to the SPA's entry point
-app.get('*', serveStatic({ path: './public/index.html' }));
 
-export default app;
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    
+    // For API requests, use the Hono app
+    if (url.pathname.startsWith('/api/')) {
+      return app.fetch(request, env, ctx);
+    }
+    
+    // For static assets, use Cloudflare's built-in handler
+    try {
+      return await env.ASSETS.fetch(request);
+    } catch (e) {
+      // If static asset not found, send index.html for SPA routing
+      return await env.ASSETS.fetch(new Request(new URL('/index.html', request.url)));
+    }
+  }
+}
