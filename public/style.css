@@ -362,7 +362,8 @@ body {
 .filter-section { margin-bottom: 1.5rem; }
 .filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; }
 .filter-item { display: flex; align-items: center; }
-.filter-item input { margin-right: 0.5rem; }
+.filter-item input { margin-right: 0; }
+.filter-item svg { width: 20px; height: 20px; stroke-width: 2; color: var(--muted-text-color); /* Match the text color */ }
 
 .admin-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
 .admin-tab { padding: 0.5rem 1rem; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; }
@@ -395,6 +396,17 @@ body {
 .toast.success { border-left-color: var(--success-color); }
 .toast.error { border-left-color: var(--danger-color); }
 .toast.info { border-left-color: var(--info-color); }
+
+.custom-map-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: #ffffff; /* White icon outline */
+    stroke-width: 2;
+    background-color: #3498db; /* A nice default blue */
+    border-radius: 50%;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
 
 @media (max-width: 992px) {
     body { overflow-y: auto; }
