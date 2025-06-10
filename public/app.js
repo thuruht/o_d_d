@@ -1751,7 +1751,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Keep any existing text as a fallback
             const existingText = navBrand.textContent;
             navBrand.innerHTML = `
-                <img src="/oddyy.png" alt="O.D.D. Map Logo" id="nav-logo">
+                <img src="oddyy.png" alt="O.D.D. Map Logo" id="nav-logo">
                 <span class="nav-brand-text">${existingText}</span>
             `;
             
@@ -2213,4 +2213,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(poiStyles);
-});
+/*************  ✨ Windsurf Command 🌟  *************/
+// Dispatch a DOMContentLoaded event to ensure all scripts run after the DOM is fully loaded
+setTimeout(() => {
+    const event = new Event('DOMContentLoaded');
+    document.dispatchEvent(event);
+}, 100);
