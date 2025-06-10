@@ -4,11 +4,10 @@
   "compatibility_flags": [
     "nodejs_compat",
     "web_crypto"
-    // Add new compatibility flags here, e.g., "streams_enable_constructors"
   ],
   "workers_dev": true,
-  "assets": {
-    "binding": "ASSETS",
+  "main": "src/index.ts",
+  "site": {
     "bucket": "./public"
   },
   "d1_databases": [

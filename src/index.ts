@@ -74,14 +74,7 @@ app.get('/modals.js', serveStatic({ path: './public/modals.js' }));
 
 // Catch-all route for SPA
 app.get('*', async (c) => {
-  try {
-    // Try to serve the requested file
-    return await c.env.ASSETS.fetch(c.req.raw);
-  } catch (e) {
-    // If file not found, serve index.html for client-side routing
-    return await c.env.ASSETS.fetch(new Request(new URL('/index.html', c.req.url)));
-  }
-});
-
-// Export the app for Cloudflare Workers
+  // With Sites integration, we only need to handle the SPA fallback
+  return c.env.ASSETS.fetch(new Request(new URL('/index.html', c.req.url)));
+});// Export the app for Cloudflare Workers
 export default app;
