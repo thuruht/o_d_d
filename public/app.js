@@ -1724,7 +1724,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const setupAppEventListeners = () => {
-
         document.getElementById('language-select').addEventListener('change', (e) => {
 
             currentLanguage = e.target.value;
@@ -1863,11 +1862,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Add quick toggles for all overlay layers
-        const createLayerToggle = (layer, icon, title, position = 'topright') => {
-            const toggle = L.control({position});
+        const createLayerToggle = (layer, icon, title) => {
+            // Move these to bottomright to avoid overlap with the main layer control
+            const toggle = L.control({position: 'bottomright'});
             toggle.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
                 div.innerHTML = `<a href="#" title="${title}" style="font-weight:bold;">${icon}</a>`;
+                
+                // Check if the layer is already active and set initial state
+                if (map.hasLayer(layer)) {
+                    div.firstChild.classList.add('active');
+                }
+                
                 div.firstChild.onclick = function(e) {
                     e.preventDefault();
                     if (map.hasLayer(layer)) {
@@ -1877,17 +1883,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         map.addLayer(layer);
                         div.firstChild.classList.add('active');
                     }
+                    return false; // Prevent event propagation
                 };
                 return div;
             };
             return toggle;
         };
 
-        // Create toggles for each layer
-        createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
-        createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
-        createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
-        createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);  // Add this line
+        // Add some space between the toggles with custom CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            .leaflet-control-container .leaflet-bottom .leaflet-bar {
+                margin-bottom: 10px;
+            }
+            .leaflet-bar a.active {
+                background-color: #ddd;
+                border-color: #999;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add the toggles with a bit of delay to ensure map is fully initialized
+        setTimeout(() => {
+            createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
+            createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
+            createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
+            createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);
+        }, 500);
     };
 
 
