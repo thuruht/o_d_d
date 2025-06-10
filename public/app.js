@@ -413,9 +413,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return response.status === 204 ? null : await response.json();
     };
 
+
     const checkLoginState = async () => {
         try {
-            // Use a modified version that doesn't show error toasts
+            // Use apiRequestSilent instead of apiRequest to avoid showing error toast
             currentUser = await apiRequestSilent('/auth/me');
         } catch (error) {
             currentUser = null;
@@ -1027,15 +1028,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     };
 
-    const checkLoginState = async () => {
-        try {
-            // Use a modified version that doesn't show error toasts
-            currentUser = await apiRequestSilent('/auth/me');
-        } catch (error) {
-            currentUser = null;
-        }
-        updateUserUI(currentUser);
-    };
+
 
     const setupModalEventListeners = () => {
 
