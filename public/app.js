@@ -1745,6 +1745,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const setupAppEventListeners = () => {
+        // Add logo to nav-brand
+        const navBrand = document.querySelector('.nav-brand');
+        if (navBrand) {
+            // Keep any existing text as a fallback
+            const existingText = navBrand.textContent;
+            navBrand.innerHTML = `
+                <img src="/oddyy.png" alt="O.D.D. Map Logo" id="nav-logo">
+                <span class="nav-brand-text">${existingText}</span>
+            `;
+            
+            // Add CSS for responsive logo sizing
+            const logoStyle = document.createElement('style');
+            logoStyle.textContent = `
+                #nav-logo {
+                    height: clamp(30px, 5vw, 50px);
+                    max-width: 100%;
+                    vertical-align: middle;
+                    margin-right: 8px;
+                }
+                .nav-brand-text {
+                    display: inline-block;
+                    vertical-align: middle;
+                }
+                @media (max-width: 600px) {
+                    .nav-brand-text {
+                        display: none;
+                    }
+                    #nav-logo {
+                        height: clamp(24px, 4vw, 40px);
+                    }
+                }
+            `;
+            document.head.appendChild(logoStyle);
+        }
+
         document.getElementById('language-select').addEventListener('change', (e) => {
 
             currentLanguage = e.target.value;

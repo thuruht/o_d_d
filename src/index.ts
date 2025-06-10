@@ -68,7 +68,7 @@ app.route('/api', api);
 
 // --- Static Asset Serving for SPA ---
 // Serve all static files from the root, using the asset manifest
-function getAssetManifest(env) {
+function getAssetManifest(env: Env) {
   try {
     return env.__STATIC_CONTENT_MANIFEST 
       ? JSON.parse(env.__STATIC_CONTENT_MANIFEST) 
@@ -79,16 +79,26 @@ function getAssetManifest(env) {
   }
 }
 
-app.get('/*', serveStatic({ 
-  root: './', 
-  manifest: getAssetManifest(c.env) // Use the helper function 
-}));
+app.get('/favicon.ico', (c) => {
+  return c.newResponse(null, 204);
+});
+
+// Correctly implement the static file serving middleware
+app.get(
+  '/*',
+  serveStatic({
+    root: './',
+    manifest: (c) => getAssetManifest(c.env),
+  })
+);
 
 
 
 // Catch-all route for SPA
 app.get('*', async (c) => {
   // With Sites integration, we only need to handle the SPA fallback
-  return c.env.ASSETS.fetch(new Request(new URL('/index.html', c.req.url)));
+  const spaUrl = new URL('/index.html', c.req.url).toString();
+  const assetResponse = await c.env.ASSETS.fetch(spaUrl);
+  return assetResponse;
 });// Export the app for Cloudflare Workers
 export default app;
