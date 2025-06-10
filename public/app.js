@@ -1880,7 +1880,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
         createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
         createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);  // Add this line
-    });
+    };
 
 
 
