@@ -26,12 +26,9 @@
   ],
   "vars": {
     "ADMIN_EMAIL": "lowlyserf@distorted.work",
-    "R2_PUBLIC_URL": "https://odd-img.distorted.work",
-    "R2_ENDPOINT": "https://your-account-id.r2.cloudflarestorage.com",
     "R2_BUCKET_NAME": "odd-media"
   },
-  "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1
+  "build": {
+    "command": "npm run build"
   }
 }

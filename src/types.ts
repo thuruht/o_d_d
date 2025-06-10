@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { D1Database, R2Bucket, Fetcher } from '@cloudflare/workers-types';
 import { Context as HonoContext } from 'hono';
 
@@ -114,11 +115,12 @@ export interface Favorite {
     created_at: string;
 }
 
-export interface AuthPayload {
-    userId: string;
-    role: UserRole;
-    exp: number;
-}
+export const UserProfile = z.object({
+  bio: z.string().optional(),
+  website: z.string().optional(),
+  contact: z.string().optional(),
+  avatar_url: z.string().optional()
+});
 
 export interface Env {
     ASSETS: Fetcher;
@@ -133,3 +135,11 @@ export interface Env {
 }
 
 export type C = HonoContext<{ Bindings: Env, Variables: { user: AuthPayload } }>;
+
+export interface AuthPayload {
+  id: string;
+  username: string;
+  email: string;
+  role: 'admin' | 'moderator' | 'user';
+  exp: number;
+}

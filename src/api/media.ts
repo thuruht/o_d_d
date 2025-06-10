@@ -26,11 +26,10 @@ mediaRouter.post(
         key,
         method: 'PUT',
         options: {
-          expires: 3600, // URL expires in 1 hour
+          expires: 600, // 10 minutes
           metadata: {
             contentType,
             userId: user.id,
-            locationId,
           },
         },
       });
