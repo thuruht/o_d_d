@@ -26,9 +26,15 @@
   ],
   "vars": {
     "ADMIN_EMAIL": "lowlyserf@distorted.work",
+    "R2_PUBLIC_URL": "https://odd-img.distorted.work",
     "R2_BUCKET_NAME": "odd-media"
   },
   "build": {
     "command": "npm run build"
+  },
+  "observability": {
+    "enabled": true,
+    "level": "debug",
+    "head_sampling_rate": 1
   }
 }
