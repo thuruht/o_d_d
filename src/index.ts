@@ -31,6 +31,7 @@ app.use('*', async (c, next) => {
     "default-src 'self'; " +
     "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com; " +
     "style-src 'self' https://unpkg.com https://fonts.bunny.net 'unsafe-inline'; " +
+    // Add crossorigin=anonymous to the opencampingmap.org URL pattern
     "img-src 'self' https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com https://*.waymarkedtrails.org https://*.tiles.openrailwaymap.org https://opencampingmap.org data:; " +
     "font-src 'self' https://fonts.bunny.net; " +
     "connect-src 'self' https://nominatim.openstreetmap.org https://829921384c97e0dbbb34430e307d6b52.r2.cloudflarestorage.com; " +

@@ -553,7 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
             attribution: '© <a href="https://opencampingmap.org">OpenCampingMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             minZoom: 2,
             maxZoom: 19,
-            opacity: 0.7
+            opacity: 0.7,
+            crossOrigin: 'anonymous'  // Add this line to fix CORB issues
         });
 
         // --- Updated Overlay Maps ---
@@ -1861,40 +1862,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         });
 
-        // Add quick toggles for all overlay layers
+        // Update the createLayerToggle function
         const createLayerToggle = (layer, icon, title) => {
-            // Move these to bottomright to avoid overlap with the main layer control
             const toggle = L.control({position: 'bottomright'});
+            
             toggle.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
                 div.innerHTML = `<a href="#" title="${title}" style="font-weight:bold;">${icon}</a>`;
                 
-                // Check if the layer is already active and set initial state
+                // Check if layer is already on the map and set initial state
                 if (map.hasLayer(layer)) {
                     div.firstChild.classList.add('active');
                 }
                 
-                div.firstChild.onclick = function(e) {
-                    e.preventDefault();
+                L.DomEvent.on(div.firstChild, 'click', function(e) {
+                    L.DomEvent.preventDefault(e);
+                    L.DomEvent.stopPropagation(e);
+                    
                     if (map.hasLayer(layer)) {
                         map.removeLayer(layer);
-                        div.firstChild.classList.remove('active');
+                        this.classList.remove('active');
                     } else {
                         map.addLayer(layer);
-                        div.firstChild.classList.add('active');
+                        this.classList.add('active');
                     }
-                    return false; // Prevent event propagation
-                };
+                });
+                
                 return div;
             };
+            
             return toggle;
         };
 
-        // Add some space between the toggles with custom CSS
+        // Add these CSS styles for the toggles
         const style = document.createElement('style');
         style.textContent = `
-            .leaflet-control-container .leaflet-bottom .leaflet-bar {
-                margin-bottom: 10px;
+            .leaflet-bottom .leaflet-control {
+                margin-bottom: 15px;
             }
             .leaflet-bar a.active {
                 background-color: #ddd;
@@ -1905,11 +1909,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add the toggles with a bit of delay to ensure map is fully initialized
         setTimeout(() => {
-            createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
-            createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
-            createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
-            createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);
-        }, 500);
+            // Make sure layers are initialized before adding toggles
+            if (hikingTrails && cyclingTrails && railwayStandard && campingLayer) {
+                createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
+                createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
+                createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
+                createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);
+            }
+        }, 1000);  // Increased timeout to ensure map is fully loaded
     };
 
 
