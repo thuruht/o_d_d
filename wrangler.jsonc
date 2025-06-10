@@ -8,7 +8,8 @@
   ],
   "workers_dev": true,
   "assets": {
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "bucket": "./public"
   },
   "d1_databases": [
     {
