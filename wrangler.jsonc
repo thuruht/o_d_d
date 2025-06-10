@@ -6,9 +6,6 @@
   ],
   "workers_dev": true,
   "main": "src/index.ts",
-  "site": {
-    "bucket": "./public"
-  },
   "assets": {
     "binding": "ASSETS"
   },
