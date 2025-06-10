@@ -29,5 +29,9 @@
     "R2_PUBLIC_URL": "https://odd-img.distorted.work",
     "R2_BUCKET_NAME": "odd-media",
     "R2_ENDPOINT": "https://829921384c97e0dbbb34430e307d6b52.r2.cloudflarestorage.com"
+  },
+  "logs": {
+  
+    "observability": true
   }
 }

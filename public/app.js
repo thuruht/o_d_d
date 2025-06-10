@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let favoritesViewActive = false;
 
+    // Declare these variables in the outer scope so both functions can access them
+    let hikingTrails = null;
+    let cyclingTrails = null;
+    let railwayStandard = null;
+    let railwayMaxspeed = null;
+    let railwayElectrification = null;
+    let campingLayer = null;
+
     const HOME_VIEW = {
 
         center: [9, 8],
@@ -501,7 +509,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const initMap = () => {
-        map = L.map('map-container', { zoomControl: false, attributionControl: false }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
+        map = L.map('map-container', { zoomControl: false, attributionControl: false })
+            .setView(HOME_VIEW.center, HOME_VIEW.zoom);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
         // --- Base Layers (your existing map styles) ---
@@ -510,38 +519,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap' });
         const baseMaps = { "Street": street, "Satellite": satellite, "Topographic": topo };
 
-        // --- Existing Overlay Layers for Trails ---
-        const hikingTrails = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', {
+        // --- Initialize the overlay layers for use in both functions ---
+        hikingTrails = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
         });
-        const cyclingTrails = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
+        
+        cyclingTrails = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
         });
 
-        // --- NEW: OpenRailwayMap Layers ---
-        const railwayStandard = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
+        railwayStandard = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
             attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
             minZoom: 2,
             maxZoom: 19,
             opacity: 0.7
         });
 
-        const railwayMaxspeed = L.tileLayer('https://{s}.tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png', {
+        railwayMaxspeed = L.tileLayer('https://{s}.tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png', {
             attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
             minZoom: 2,
             maxZoom: 19,
             opacity: 0.7
         });
 
-        const railwayElectrification = L.tileLayer('https://{s}.tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png', {
+        railwayElectrification = L.tileLayer('https://{s}.tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png', {
             attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
             minZoom: 2,
             maxZoom: 19,
             opacity: 0.7
         });
 
-        // --- OpenCampingMap Layer ---
-        const campingLayer = L.tileLayer('https://opencampingmap.org/tiles/{z}/{x}/{y}.png', {
+        campingLayer = L.tileLayer('https://opencampingmap.org/tiles/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://opencampingmap.org">OpenCampingMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             minZoom: 2,
             maxZoom: 19,
