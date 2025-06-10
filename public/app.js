@@ -1972,9 +1972,7 @@ document.addEventListener('DOMContentLoaded', () => {
             createLayerToggle(breweryLayer, '🍺', 'Toggle Breweries').addTo(map);
             createLayerToggle(familyLayer, '👶', 'Toggle Family-Friendly Sites').addTo(map);
         }, 1000);  // Increased timeout to ensure map is fully loaded
-    });
-
-
+    };
 
     const supportsR2Features = () => {
         try {
@@ -2213,6 +2211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(poiStyles);
+    }); 
 /*************  ✨ Windsurf Command 🌟  *************/
 // Dispatch a DOMContentLoaded event to ensure all scripts run after the DOM is fully loaded
 setTimeout(() => {
