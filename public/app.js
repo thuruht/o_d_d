@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let railwayMaxspeed = null;
     let railwayElectrification = null;
     let campingLayer = null;
+    let breweryLayer = null;
+    let familyLayer = null;
 
     const HOME_VIEW = {
 
@@ -549,12 +551,28 @@ document.addEventListener('DOMContentLoaded', () => {
             opacity: 0.7
         });
 
-        campingLayer = L.tileLayer('https://opencampingmap.org/tiles/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://opencampingmap.org">OpenCampingMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        campingLayer = L.tileLayer('https://opencampingmap.openstreetmap.de/tiles/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://opencampingmap.openstreetmap.de">OpenCampingMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             minZoom: 2,
             maxZoom: 19,
             opacity: 0.7,
-            crossOrigin: 'anonymous'  // Add this line to fix CORB issues
+            crossOrigin: 'anonymous'
+        });
+
+        // Add a breweries layer
+        breweryLayer = L.tileLayer('https://brewmap.openstreetmap.de/tiles/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://brewmap.openstreetmap.de">BrewMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            minZoom: 2,
+            maxZoom: 19,
+            opacity: 0.7
+        });
+
+        // Add a family-friendly layer
+        familyLayer = L.tileLayer('https://babykarte.openstreetmap.de/tiles/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://babykarte.openstreetmap.de">Babykarte</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            minZoom: 2,
+            maxZoom: 19,
+            opacity: 0.7
         });
 
         // --- Updated Overlay Maps ---
@@ -564,7 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
             "Railways - Standard": railwayStandard,
             "Railways - Max Speed": railwayMaxspeed, 
             "Railways - Electrification": railwayElectrification,
-            "Camping Sites": campingLayer  // Add the camping layer here
+            "Camping Sites": campingLayer,
+            "Breweries": breweryLayer,
+            "Family-Friendly Sites": familyLayer
         };
 
         // --- CHANGED: Initialize with satellite instead of street ---
@@ -1910,14 +1930,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add the toggles with a bit of delay to ensure map is fully initialized
         setTimeout(() => {
             // Make sure layers are initialized before adding toggles
-            if (hikingTrails && cyclingTrails && railwayStandard && campingLayer) {
-                createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
-                createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
-                createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
-                createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);
-            }
+            createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
+            createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
+            createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
+            createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);
+            createLayerToggle(breweryLayer, '🍺', 'Toggle Breweries').addTo(map);
+            createLayerToggle(familyLayer, '👶', 'Toggle Family-Friendly Sites').addTo(map);
         }, 1000);  // Increased timeout to ensure map is fully loaded
-    };
+    });
 
 
 
@@ -1969,4 +1989,193 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     init();
+
+    // Add this function after loadDestinations
+
+    const loadOsmPois = async (poiType) => {
+        const center = map.getCenter();
+        const bounds = map.getBounds();
+        const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+        
+        // Define the Overpass query based on POI type
+        let query;
+        
+        switch(poiType) {
+            case 'campsites':
+                query = `[out:json][timeout:25];
+                (
+                  node["tourism"="camp_site"](${bbox});
+                  way["tourism"="camp_site"](${bbox});
+                  relation["tourism"="camp_site"](${bbox});
+                );
+                out center;`;
+                break;
+            case 'breweries':
+                query = `[out:json][timeout:25];
+                (
+                  node["craft"="brewery"](${bbox});
+                  way["craft"="brewery"](${bbox});
+                  relation["craft"="brewery"](${bbox});
+                );
+                out center;`;
+                break;
+            default:
+                return;
+        }
+        
+        try {
+            showToast(`Loading ${poiType} from OpenStreetMap...`, 'info');
+            
+            const response = await fetch('https://overpass-api.de/api/interpreter', {
+                method: 'POST',
+                body: query
+            });
+            
+            if (!response.ok) {
+                throw new Error('Overpass API request failed');
+            }
+            
+            const data = await response.json();
+            
+            // Create a temporary layer for the results
+            const tempLayer = L.layerGroup().addTo(map);
+            
+            // Create markers for each result
+            data.elements.forEach(element => {
+                let lat, lon;
+                
+                if (element.type === 'node') {
+                    lat = element.lat;
+                    lon = element.lon;
+                } else {
+                    // For ways and relations, use the center point
+                    lat = element.center.lat;
+                    lon = element.center.lon;
+                }
+                
+                // Get the name or use a default
+                const name = element.tags.name || `${poiType} (unnamed)`;
+                
+                // Create an icon based on POI type
+                let icon = '📍';
+                if (poiType === 'campsites') icon = '⛺';
+                if (poiType === 'breweries') icon = '🍺';
+                
+                // Create a custom icon
+                const customIcon = L.divIcon({
+                    html: `<div class="osm-poi-icon">${icon}</div>`,
+                    className: 'custom-osm-poi',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30],
+                    popupAnchor: [0, -30]
+                });
+                
+                // Create the marker
+                const marker = L.marker([lat, lon], { icon: customIcon }).addTo(tempLayer);
+                
+                // Create popup content with available tags
+                let popupContent = `<div class="osm-poi-popup"><h4>${DOMPurify.sanitize(name)}</h4>`;
+                
+                // Add relevant tags to the popup
+                if (element.tags) {
+                    popupContent += '<table class="osm-tags-table">';
+                    for (const [key, value] of Object.entries(element.tags)) {
+                        if (key !== 'name') {
+                            popupContent += `<tr><td>${DOMPurify.sanitize(key)}</td><td>${DOMPurify.sanitize(value)}</td></tr>`;
+                        }
+                    }
+                    popupContent += '</table>';
+                }
+                
+                popupContent += `<a href="https://www.openstreetmap.org/${element.type}/${element.id}" target="_blank">View on OSM</a>`;
+                popupContent += '</div>';
+                
+                marker.bindPopup(popupContent);
+            });
+            
+            showToast(`Loaded ${data.elements.length} ${poiType} from OpenStreetMap`, 'success');
+            
+            // Add a remove button to the map
+            const removeControl = L.control({position: 'bottomright'});
+            removeControl.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+                div.innerHTML = `<a href="#" title="Remove ${poiType}" style="font-weight:bold;">❌</a>`;
+                
+                L.DomEvent.on(div.firstChild, 'click', function(e) {
+                    L.DomEvent.preventDefault(e);
+                    L.DomEvent.stopPropagation(e);
+                    map.removeLayer(tempLayer);
+                    map.removeControl(removeControl);
+                    showToast(`Removed ${poiType} layer`, 'info');
+                });
+                
+                return div;
+            };
+            removeControl.addTo(map);
+            
+        } catch (error) {
+            console.error('Failed to load OSM POIs:', error);
+            showToast(`Error loading ${poiType} from OpenStreetMap`, 'error');
+        }
+    };
+
+    // Add these buttons to the map container
+    document.getElementById('map-container').insertAdjacentHTML('beforeend', `
+        <div class="osm-poi-buttons">
+            <button id="load-campsites-btn" class="osm-poi-btn">Load Campsites ⛺</button>
+            <button id="load-breweries-btn" class="osm-poi-btn">Load Breweries 🍺</button>
+        </div>
+    `);
+
+    // Add event listeners for the new buttons
+    document.getElementById('load-campsites-btn').addEventListener('click', () => loadOsmPois('campsites'));
+    document.getElementById('load-breweries-btn').addEventListener('click', () => loadOsmPois('breweries'));
+
+    // Add CSS for the new elements
+    const poiStyles = document.createElement('style');
+    poiStyles.textContent = `
+        .osm-poi-buttons {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+        
+        .osm-poi-btn {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .osm-poi-btn:hover {
+            background: #f4f4f4;
+        }
+        
+        .osm-poi-icon {
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        .osm-tags-table {
+            margin-top: 8px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .osm-tags-table td {
+            border: 1px solid #ddd;
+            padding: 4px;
+            font-size: 12px;
+        }
+        
+        .osm-tags-table tr td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+    `;
+    document.head.appendChild(poiStyles);
 });
