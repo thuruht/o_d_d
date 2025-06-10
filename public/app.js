@@ -1609,22 +1609,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         searchInput.addEventListener('input', () => {
-
             const query = searchInput.value.toLowerCase();
-
             const filteredUsers = users.filter(user => user.username.toLowerCase().includes(query) || user.email.toLowerCase().includes(query));
 
-                    const typeMatch = sub.submission_type ? sub.submission_type.toLowerCase().includes(query) : false;
+            // Fix the submission filter structure
+            const filteredSubmissions = submissions.filter(sub => {
                 try {
                     if (!sub) return false;
-                    
+
                     // Parse the data safely
                     const data = sub.data ? JSON.parse(sub.data) : {};
-                    
+
                     // Safely access properties with optional chaining
                     const typeMatch = sub.submission_type?.toLowerCase?.()?.includes(query) || false;
                     const nameMatch = data?.name?.toLowerCase?.()?.includes(query) || false;
-                    
+
                     return typeMatch || nameMatch;
                 } catch (err) {
                     console.error('Error filtering submission:', err);
@@ -1634,14 +1633,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const filteredReports = reports.filter(rep => rep.reason.toLowerCase().includes(query) || rep.notes.toLowerCase().includes(query));
 
-
-
             document.getElementById('admin-tab-users').innerHTML = `<ul class="admin-panel-list">${renderUsersList(filteredUsers)}</ul>`;
-
             document.getElementById('admin-tab-submissions').innerHTML = `<ul class="admin-panel-list">${renderSubmissionsList(filteredSubmissions)}</ul>`;
-
             document.getElementById('admin-tab-reports').innerHTML = `<ul class="admin-panel-list">${renderReportsList(filteredReports)}</ul>`;
-
         });
 
     };
@@ -1808,5 +1802,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-        init();
-    });
+    init();
+});
