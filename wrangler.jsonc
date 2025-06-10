@@ -2,8 +2,7 @@
   "name": "overland-destinations-database",
   "compatibility_date": "2025-06-05",
   "compatibility_flags": [
-    "nodejs_compat",
-    "web_crypto"
+    "nodejs_compat"
   ],
   "workers_dev": true,
   "main": "src/index.ts",
