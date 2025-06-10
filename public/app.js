@@ -390,6 +390,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     };
 
+    // New function that doesn't show error toasts
+    const apiRequestSilent = async (endpoint, method = 'GET', body = null) => {
+        const headers = { 'Content-Type': 'application/json' };
+        const options = {
+            method,
+            headers,
+            credentials: 'include'
+        };
+        if (body) options.body = JSON.stringify(body);
+        
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (!response.ok) {
+            // Don't show toast for auth errors during session check
+            if (response.status === 401 && endpoint === '/auth/me') {
+                throw new Error('Not authenticated');
+            }
+            
+            const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        return response.status === 204 ? null : await response.json();
+    };
+
+    const checkLoginState = async () => {
+        try {
+            // Use a modified version that doesn't show error toasts
+            currentUser = await apiRequestSilent('/auth/me');
+        } catch (error) {
+            currentUser = null;
+        }
+        updateUserUI(currentUser);
+    };
+
     const updateUIForLanguage = () => {
 
         document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -476,23 +509,59 @@ document.addEventListener('DOMContentLoaded', () => {
         const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap' });
         const baseMaps = { "Street": street, "Satellite": satellite, "Topographic": topo };
 
-        // --- NEW: Overlay Layers for Trails ---
-        // These layers will be placed on top of the base map.
+        // --- Existing Overlay Layers for Trails ---
         const hikingTrails = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
         });
-
         const cyclingTrails = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
         });
 
+        // --- NEW: OpenRailwayMap Layers ---
+        const railwayStandard = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+            minZoom: 2,
+            maxZoom: 19,
+            opacity: 0.7
+        });
+
+        const railwayMaxspeed = L.tileLayer('https://{s}.tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+            minZoom: 2,
+            maxZoom: 19,
+            opacity: 0.7
+        });
+
+        const railwayElectrification = L.tileLayer('https://{s}.tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+            minZoom: 2,
+            maxZoom: 19,
+            opacity: 0.7
+        });
+
+        // --- OpenCampingMap Layer ---
+        const campingLayer = L.tileLayer('https://opencampingmap.org/tiles/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://opencampingmap.org">OpenCampingMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            minZoom: 2,
+            maxZoom: 19,
+            opacity: 0.7
+        });
+
+        // --- Updated Overlay Maps ---
         const overlayMaps = {
             "Hiking Trails": hikingTrails,
-            "Cycling Trails": cyclingTrails
+            "Cycling Trails": cyclingTrails,
+            "Railways - Standard": railwayStandard,
+            "Railways - Max Speed": railwayMaxspeed, 
+            "Railways - Electrification": railwayElectrification,
+            "Camping Sites": campingLayer  // Add the camping layer here
         };
 
-        // --- Initialize the map with the Street layer active ---
-        street.addTo(map);
+        // --- CHANGED: Initialize with satellite instead of street ---
+        satellite.addTo(map);
+
+        // Add camping layer by default
+        campingLayer.addTo(map);
 
         // --- Locations and Layer Control ---
         locationsLayer = L.layerGroup().addTo(map);
@@ -883,6 +952,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalManager.create('admin-panel', t('admin_panel_title'), `<div class="admin-tabs"><button class="admin-tab active" data-tab="users">Users</button><button class="admin-tab" data-tab="submissions">Submissions</button><button class="admin-tab" data-tab="reports">Reports</button></div><div id="admin-panel-content"></div>`, [{ id: 'admin-close', class: 'btn-secondary', text: t('close') }]);
 
+
+
+
+
         // --- UPDATED: New tabbed info modal ---
         modalManager.create('info', t('info_title'), `
             <div class="info-tabs">
@@ -892,6 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="info-tab-content active" id="info-tab-about">
                 <p>This is the Overland Destinations Database, an open-source project for travelers to share great places.</p>
+                <p>We have included layers for hiking and cycling trails, railways, and camping sites to help you find the best routes and spots.</p>
+                <p>Please note that this project is in beta. We are still working on features like user profiles, reviews, and media uploads. Let us know how they're working!</p>
                 <p>Entries by the "system" user are a.i. generated for beta testing only! Please help us by adding your own entries and sharing the site with other travelers. :)</p>
             </div>
             <div class="info-tab-content" id="info-tab-contribute">
@@ -953,19 +1028,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const checkLoginState = async () => {
-
         try {
-
-            currentUser = await apiRequest('/auth/me');
-
+            // Use a modified version that doesn't show error toasts
+            currentUser = await apiRequestSilent('/auth/me');
         } catch (error) {
-
             currentUser = null;
-
         }
-
         updateUserUI(currentUser);
-
     };
 
     const setupModalEventListeners = () => {
@@ -1337,11 +1406,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Address is used in URL, ensure it's properly encoded. fetch does this.
 
             const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
-
             if (!response.ok) throw new Error('Geocoding service failed.');
-
             const data = await response.json();
-
             if (data && data.length > 0) {
 
                 const { lat, lon } = data[0];
@@ -1531,31 +1597,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function renderSubmissionsList(submissions) {
-
         return submissions.map(sub => {
-
-            const data = JSON.parse(sub.data);
-
-            return `
-
-            <li data-type="${sub.submission_type}" data-status="${sub.status}">
-
-                <span>${DOMPurify.sanitize(sub.submission_type.toUpperCase())}: ${DOMPurify.sanitize(data.name || '')}</span>
-
-                <span>By: ${DOMPurify.sanitize(sub.submitter_username)}</span>
-
-                <div class="actions">
-
-                    <button class="btn btn-success btn-sm admin-submission-approve" data-id="${sub.id}">✓</button>
-
-                    <button class="btn btn-danger btn-sm admin-submission-reject" data-id="${sub.id}">✗</button>
-
-                    </div>
-
-            </li>`;
-
+            try {
+                const data = JSON.parse(sub.data || '{}');
+                return `
+            <li data-type="${sub.submission_type}" data-status="${sub.status}">
+                <span>${DOMPurify.sanitize(sub.submission_type.toUpperCase())}: ${DOMPurify.sanitize(data.name || '')}</span>
+                <span>By: ${DOMPurify.sanitize(sub.submitter_username)}</span>
+                <div class="actions">
+                    <button class="btn btn-success btn-sm admin-submission-approve" data-id="${sub.id}">✓</button>
+                    <button class="btn btn-danger btn-sm admin-submission-reject" data-id="${sub.id}">✗</button>
+                </div>
+            </li>`;
+            } catch (err) {
+                console.error('Error rendering submission:', err);
+                return '';
+            }
         }).join('');
-
     }
 
 
@@ -1706,15 +1764,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         });
 
-        document.getElementById('nav-add-destination').addEventListener('click', (e) => { e.preventDefault(); if (!currentUser) return showToast(t('error_please_login'), 'error'); modalManager.show('add-destination', (modal) => { const center = map.getCenter(); modal.querySelector('#loc-lat').value = center.lat; modal.querySelector('#loc-lng').value = center.lng; }); });
+        document.getElementById('nav-add-destination').addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            if (!currentUser) return showToast(t('error_please_login'), 'error');
+            modalManager.show('add-destination', (modal) => {
+                const center = map.getCenter(); 
+                modal.querySelector('#loc-lat').value = center.lat; 
+                modal.querySelector('#loc-lng').value = center.lng; 
+            }); 
+        });
 
         document.getElementById('filters-button').addEventListener('click', () => modalManager.show('filters'));
 
-        document.getElementById('nav-my-favorites').addEventListener('click', (e) => { e.preventDefault(); if (!currentUser) return showToast(t('error_please_login'), 'error'); favoritesViewActive = true; loadDestinations(); });
+        document.getElementById('nav-my-favorites').addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            if (!currentUser) return showToast(t('error_please_login'), 'error');
+            favoritesViewActive = true; 
+            loadDestinations(); 
+        });
 
         document.querySelector('.nav-brand').addEventListener('click', (e) => { e.preventDefault(); favoritesViewActive = false; currentFilters = { types: [], amenities: [] }; document.getElementById('search-input').value = ''; loadDestinations(); map.flyTo(HOME_VIEW.center, HOME_VIEW.zoom); });
 
-        document.getElementById('nav-my-profile').addEventListener('click', (e) => { e.preventDefault(); if (!currentUser) return; modalManager.show('edit-profile', () => { document.getElementById('profile-bio').value = currentUser.bio || ''; document.getElementById('profile-website').value = currentUser.website || ''; document.getElementById('profile-contact').value = currentUser.contact || ''; }); });
+        document.getElementById('nav-my-profile').addEventListener('click', (e) => { 
+            e.preventDefault(); 
+            if (!currentUser) return showToast(t('error_please_login'), 'error');
+            modalManager.show('edit-profile', () => {
+                document.getElementById('profile-bio').value = currentUser.bio || ''; 
+                document.getElementById('profile-website').value = currentUser.website || '';
+                document.getElementById('profile-contact').value = currentUser.contact || '';
+            }); 
+        });
 
         document.getElementById('nav-admin').addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(); });
 
@@ -1754,7 +1833,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         searchButton.addEventListener('click', performSearch);
 
-        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+        searchInput.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') performSearch(); 
+        });
 
         searchInput.addEventListener('search', () => { if (searchInput.value === '') { favoritesViewActive = false; loadDestinations(); } });
 
@@ -1780,9 +1861,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
         });
 
+        // Add quick toggles for all overlay layers
+        const createLayerToggle = (layer, icon, title, position = 'topright') => {
+            const toggle = L.control({position});
+            toggle.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+                div.innerHTML = `<a href="#" title="${title}" style="font-weight:bold;">${icon}</a>`;
+                div.firstChild.onclick = function(e) {
+                    e.preventDefault();
+                    if (map.hasLayer(layer)) {
+                        map.removeLayer(layer);
+                        div.firstChild.classList.remove('active');
+                    } else {
+                        map.addLayer(layer);
+                        div.firstChild.classList.add('active');
+                    }
+                };
+                return div;
+            };
+            return toggle;
+        };
+
+        // Create toggles for each layer
+        createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
+        createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
+        createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
+        createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);  // Add this line
+    });
+
+
+
+    const supportsR2Features = () => {
+        try {
+            return typeof fetch === 'function' && 
+                   typeof URL === 'function' && 
+                   typeof Blob === 'function';
+        } catch (e) {
+            return false;
+        }
     };
 
 
+    const handleMediaUpload = async (file, locationId) => {
+        if (!supportsR2Features()) {
+            showToast('Your browser does not support media uploads', 'error');
+            return false;
+        }
+        
+        try {
+            const { signedUrl } = await apiRequest('/media/upload-url', 'POST', { 
+                filename: file.name, 
+                contentType: file.type,
+                locationId: locationId 
+            });
+            await fetch(signedUrl, { method: 'PUT', body: file });
+            return true;
+        } catch (error) {
+            console.error(`Upload failed for ${file.name}`, error);
+            return false;
+        }
+    };
 
     const init = async () => {
 
@@ -1799,8 +1937,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setupModalEventListeners();
 
     };
-
-
 
     init();
 });

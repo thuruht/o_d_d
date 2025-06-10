@@ -65,7 +65,9 @@ authRouter.post('/login', async (c: C) => {
     }
 
     const payload: AuthPayload = {
-        userId: user.id,
+        id: user.id,
+        username: user.username,
+        email: user.email,
         role: user.role,
         exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7) // 7 days
     };
@@ -104,11 +106,12 @@ authRouter.post('/logout', async (c: C) => {
     return c.json({ message: 'Logged out successfully' });
 });
 
+// Fix in the /me endpoint - Use id instead of userId
 authRouter.get('/me', authMiddleware(), async (c: C) => {
     const userPayload = c.get('user');
     const user = await c.env.DB.prepare(
         'SELECT id, username, email, role, created_at FROM users WHERE id = ?'
-    ).bind(userPayload.userId).first<Omit<User, 'password_hash'>>();
+    ).bind(userPayload.id).first<Omit<User, 'password_hash'>>(); // CHANGED: userPayload.userId to userPayload.id
 
     if (!user) {
         return c.json({ error: 'User not found' }, 404);

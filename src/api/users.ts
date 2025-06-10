@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import { requireAuth } from '../utils/auth';
 import { Env, UserProfile } from '../types';
+import { logError } from '../utils/logging';
 
 export const usersRouter = new Hono<{ Bindings: Env }>();
 
@@ -56,8 +57,8 @@ usersRouter.put(
                 .get();
 
             return c.json(updatedUser);
-        } catch (error) {
-            console.error('Failed to update profile:', error);
+        } catch (e: any) {
+            logError('Users', 'Failed to update user profile', e);
             return c.json({ error: 'Failed to update profile' }, 500);
         }
     }
@@ -94,9 +95,9 @@ usersRouter.post(
         const avatar_url = `${c.env.R2_PUBLIC_URL}/${key}`;
   
         return c.json({ signedUrl, avatar_url });
-      } catch (error) {
-        console.error('Error generating avatar upload URL:', error);
-        return c.json({ error: 'Could not generate upload URL' }, 500);
+      } catch (e: any) {
+        logError('Users', 'Failed to generate avatar upload URL', e);
+        return c.json({ error: 'Failed to generate upload URL' }, 500);
     }
     }
 );

@@ -4,6 +4,9 @@ import { C, AuthPayload } from '../types';
 
 /**
  * Creates a JWT token using native Web Crypto API.
+ * @param payload The data to include in the token.
+ * @param secret The secret key for signing.
+ * @returns A promise that resolves to the JWT string.
  */
 export async function sign(payload: AuthPayload, secret: string): Promise<string> {
     const encoder = new TextEncoder();
@@ -35,7 +38,10 @@ export async function sign(payload: AuthPayload, secret: string): Promise<string
 }
 
 /**
- * Verifies a JWT token.
+ * Verifies a JWT token using the Web Crypto API.
+ * @param token The JWT string to verify.
+ * @param secret The secret key for verification.
+ * @returns A promise that resolves to the payload if valid, otherwise throws an error.
  */
 export async function verify(token: string, secret: string): Promise<AuthPayload> {
     const parts = token.split('.');

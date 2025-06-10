@@ -61,7 +61,7 @@ adminRouter.post('/submissions/:id/approve', authMiddleware('moderator'), async 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')`)
                 .bind(locationId, data.name, data.description, data.latitude, data.longitude, data.type, JSON.stringify(data.properties || {}), submission.user_id),
             c.env.DB.prepare("UPDATE submissions SET status = 'approved', admin_notes = ? WHERE id = ?")
-                .bind(`Approved by ${admin.userId}`, id)
+                .bind(`Approved by ${admin.id}`, id)
         ]);
         return c.json({ message: 'New location approved', locationId });
     } else {
@@ -89,7 +89,7 @@ adminRouter.post('/submissions/:id/approve', authMiddleware('moderator'), async 
         await c.env.DB.batch([
             c.env.DB.prepare(updateQuery).bind(...updateParams),
             c.env.DB.prepare("UPDATE submissions SET status = 'approved', admin_notes = ? WHERE id = ?")
-                .bind(`Approved by ${admin.userId}`, id)
+                .bind(`Approved by ${admin.id}`, id)
         ]);
         return c.json({ message: 'Location edit approved' });
     }
@@ -101,7 +101,7 @@ adminRouter.post('/submissions/:id/reject', authMiddleware('moderator'), async (
     const admin = c.get('user');
     
     const result = await c.env.DB.prepare("UPDATE submissions SET status = 'rejected', admin_notes = ? WHERE id = ? AND status = 'pending'")
-        .bind(`Rejected by ${admin.userId}: ${reason}`, id).run();
+        .bind(`Rejected by ${admin.id}: ${reason}`, id).run();
 
     if (result.changes === 0) return c.json({ error: 'Submission not found or already processed'}, 404);
     return c.json({ message: 'Submission rejected' });
@@ -126,7 +126,7 @@ adminRouter.post('/reports/:id/resolve', authMiddleware('moderator'), async (c: 
     }
     
     const result = await c.env.DB.prepare("UPDATE reports SET status = ?, resolved_by = ?, resolved_at = ? WHERE id = ? AND status = 'open'")
-        .bind(action, admin.userId, new Date().toISOString(), id).run();
+        .bind(action, admin.id, new Date().toISOString(), id).run();
 
     if (result.changes === 0) return c.json({ error: 'Report not found or already processed'}, 404);
     return c.json({ message: `Report has been ${action}`});

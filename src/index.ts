@@ -1,6 +1,7 @@
 // src/index.ts
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { serveStatic } from 'hono/cloudflare-workers';
 import { Env } from './types';
 
 // Import all the API routers
@@ -25,16 +26,14 @@ app.use('*', async (c, next) => {
   c.header('X-XSS-Protection', '1; mode=block');
   c.header('Referrer-Policy', 'no-referrer');
 
-  // NOTE: A strict Content-Security-Policy is essential but can be complex.
-  // The policy below is a good start, but you may need to adjust it.
-  // For example, Leaflet's default tile provider requires openstreetmap.org.
+  // Content Security Policy - updated to allow all map tile providers
   c.header('Content-Security-Policy',
     "default-src 'self'; " +
     "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com; " +
     "style-src 'self' https://unpkg.com https://fonts.bunny.net 'unsafe-inline'; " +
-    "img-src 'self' https://*.tile.openstreetmap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com https://*.waymarkedtrails.org data:; " + // Added waymarkedtrails
+    "img-src 'self' https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com https://*.waymarkedtrails.org https://*.tiles.openrailwaymap.org https://opencampingmap.org data:; " +
     "font-src 'self' https://fonts.bunny.net; " +
-    "connect-src 'self' https://nominatim.openstreetmap.org; " +
+    "connect-src 'self' https://nominatim.openstreetmap.org https://829921384c97e0dbbb34430e307d6b52.r2.cloudflarestorage.com; " +
     "frame-src 'none'; " +
     "object-src 'none';"
   );
@@ -44,12 +43,12 @@ app.use('*', async (c, next) => {
 // --- API Setup ---
 const api = new Hono();
 
-// More restrictive CORS configuration
+// More flexible CORS configuration - use env variables in production
 api.use('/*', cors({
-  origin: ['https://your-app-domain.com', 'https://another-allowed-domain.com'],
+  origin: ['*'], // In production, change to specific domains
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
   maxAge: 86400, // 24 hours
-  credentials: true //  to support cookies/auth
+  credentials: true // to support cookies/auth
 }));
 
 // Mount all API routers
@@ -67,23 +66,22 @@ api.route('/votes', votingRouter);
 app.route('/api', api);
 
 // --- Static Asset Serving for SPA ---
+// Handle specific static files
+app.get('/favicon.ico', serveStatic({ path: './public/favicon.ico' }));
+app.get('/app.js', serveStatic({ path: './public/app.js' }));
+app.get('/style.css', serveStatic({ path: './public/style.css' }));
+app.get('/modals.js', serveStatic({ path: './public/modals.js' }));
 
-
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
-    
-    // For API requests, use the Hono app
-    if (url.pathname.startsWith('/api/')) {
-      return app.fetch(request, env, ctx);
-    }
-    
-    // For static assets, use Cloudflare's built-in handler
-    try {
-      return await env.ASSETS.fetch(request);
-    } catch (e) {
-      // If static asset not found, send index.html for SPA routing
-      return await env.ASSETS.fetch(new Request(new URL('/index.html', request.url)));
-    }
+// Catch-all route for SPA
+app.get('*', async (c) => {
+  try {
+    // Try to serve the requested file
+    return await c.env.ASSETS.fetch(c.req.raw);
+  } catch (e) {
+    // If file not found, serve index.html for client-side routing
+    return await c.env.ASSETS.fetch(new Request(new URL('/index.html', c.req.url)));
   }
-}
+});
+
+// Export the app for Cloudflare Workers
+export default app;

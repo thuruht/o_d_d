@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { C, Env, Submission } from '../types';
 import { authMiddleware } from '../utils/auth';
+import { logError } from '../utils/logging';
 
 export const submissionsRouter = new Hono<{ Bindings: Env }>();
 
@@ -16,7 +17,7 @@ submissionsRouter.get('/', authMiddleware('moderator'), async (c: C) => {
         const { results } = await stmt.all<Submission>();
         return c.json(results);
     } catch (e: any) {
-        console.error('Failed to fetch submissions:', e);
+        logError('Submissions', 'Failed to fetch submissions', e);
         return c.json({ error: 'Database query failed' }, 500);
     }
 });
@@ -36,7 +37,7 @@ submissionsRouter.get('/:id', authMiddleware('moderator'), async (c: C) => {
         }
         return c.json(submission);
     } catch (e: any) {
-        console.error(`Failed to fetch submission ${id}:`, e);
+        logError('Submissions', `Failed to fetch submission ${id}`, e);
         return c.json({ error: 'Database query failed' }, 500);
     }
 });

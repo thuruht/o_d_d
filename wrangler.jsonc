@@ -1,14 +1,14 @@
 {
   "name": "overland-destinations-database",
-  "main": "src/index.ts",
   "compatibility_date": "2025-06-05",
   "compatibility_flags": [
-    "nodejs_compat"
+    "nodejs_compat",
+    "web_crypto"
+    // Add new compatibility flags here, e.g., "streams_enable_constructors"
   ],
   "workers_dev": true,
   "assets": {
-    "binding": "ASSETS",
-    "directory": "./public"
+    "binding": "ASSETS"
   },
   "d1_databases": [
     {
@@ -27,14 +27,7 @@
   "vars": {
     "ADMIN_EMAIL": "lowlyserf@distorted.work",
     "R2_PUBLIC_URL": "https://odd-img.distorted.work",
-    "R2_BUCKET_NAME": "odd-media"
-  },
-  "build": {
-    "command": "npm run build"
-  },
-  "observability": {
-    "enabled": true,
-    "level": "debug",
-    "head_sampling_rate": 1
+    "R2_BUCKET_NAME": "odd-media",
+    "R2_ENDPOINT": "https://829921384c97e0dbbb34430e307d6b52.r2.cloudflarestorage.com"
   }
 }

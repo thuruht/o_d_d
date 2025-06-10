@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { C, Env, Location, LocationProperties } from '../types';
 import { authMiddleware } from '../utils/auth';
 import { verifyToken } from '../utils/auth';
+import { logError } from '../utils/logging';
 
 export const locationsRouter = new Hono<{ Bindings: Env }>();
 
@@ -15,7 +16,7 @@ locationsRouter.get('/', async (c: C) => {
         const token = authHeader.substring(7);
         const payload = await verifyToken(token, c.env.JWT_SECRET);
         if (payload) {
-            userId = payload.userId;
+            userId = payload.id;
         }
     }
 
@@ -148,8 +149,8 @@ locationsRouter.get('/:id', async (c: C) => {
 
         return c.json(location);
     } catch (e: any) {
-        console.error(`Failed to fetch location ${id}`, e);
-        return c.json({ error: "Database query failed" }, 500);
+        logError('Locations', `Failed to fetch location ${id}`, e);
+        return c.json({ error: 'Failed to fetch location details' }, 500);
     }
 });
 
@@ -166,12 +167,12 @@ locationsRouter.post('/', authMiddleware(), async (c: C) => {
     try {
         await c.env.DB.prepare(
             `INSERT INTO submissions (id, user_id, submission_type, data, status) VALUES (?, ?, 'new', ?, 'pending')`
-        ).bind(submissionId, user.userId, JSON.stringify(submissionData)).run();
+        ).bind(submissionId, user.id, JSON.stringify(submissionData)).run();
 
         return c.json({ message: 'Location submitted for review.', submissionId }, 202);
     } catch (e: any) {
-        console.error("Failed to create submission", e);
-        return c.json({ error: "Failed to create submission" }, 500);
+        logError('Locations', 'Failed to create location', e);
+        return c.json({ error: 'Failed to create location' }, 500);
     }
 });
 
@@ -185,7 +186,7 @@ locationsRouter.put('/:id', authMiddleware(), async (c: C) => {
         return c.json({ error: "Location not found" }, 404);
     }
 
-    if (user.role === 'user' && location.created_by !== user.userId) {
+    if (user.role === 'user' && location.created_by !== user.id) {
         return c.json({ error: "Forbidden: You can only propose edits to your own locations." }, 403);
     }
 
@@ -193,12 +194,12 @@ locationsRouter.put('/:id', authMiddleware(), async (c: C) => {
     try {
         await c.env.DB.prepare(
             `INSERT INTO submissions (id, user_id, location_id, submission_type, data, status) VALUES (?, ?, ?, 'edit', ?, 'pending')`
-        ).bind(submissionId, user.userId, id, JSON.stringify(locationUpdateData)).run();
+        ).bind(submissionId, user.id, id, JSON.stringify(locationUpdateData)).run();
         
         return c.json({ message: 'Edit submitted for review.', submissionId }, 202);
     } catch (e: any) {
-        console.error("Failed to create edit submission", e);
-        return c.json({ error: "Failed to create edit submission" }, 500);
+        logError('Locations', `Failed to update location ${id}`, e);
+        return c.json({ error: 'Failed to update location' }, 500);
     }
 });
 
@@ -214,7 +215,7 @@ locationsRouter.delete('/:id', authMiddleware('moderator'), async (c: C) => {
 
         return c.json({ message: 'Location deleted successfully' });
     } catch (e: any) {
-        console.error(`Failed to delete location ${id}`, e);
-        return c.json({ error: "Failed to delete location" }, 500);
+        logError('Locations', `Failed to delete location ${id}`, e);
+        return c.json({ error: 'Failed to delete location' }, 500);
     }
 });

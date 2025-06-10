@@ -4,6 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { requireAuth } from '../utils/auth';
 import { Env } from '../types';
+import { logError } from '../utils/logging';
 
 export const mediaRouter = new Hono<{ Bindings: Env }>();
 
@@ -37,8 +38,8 @@ mediaRouter.post(
       return c.json({ signedUrl, key });
 
     } catch (e: any) {
-      console.error('Failed to create upload URL:', e);
-      return c.json({ error: 'Failed to create upload URL', details: e.message }, 500);
+      logError('Media', 'Failed to generate presigned URL', e);
+      return c.json({ error: 'Failed to generate upload URL' }, 500);
     }
   }
 );
