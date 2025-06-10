@@ -46,3 +46,42 @@ export const requireAuth = async (c: C, next: () => Promise<void>) => {
         return c.json({ error: 'Invalid or expired session' }, 401);
     }
 };
+
+/**
+ * Middleware to check authentication and optionally verify user roles.
+ * Similar to requireAuth but with role-based access control.
+ * 
+ * @param requiredRole Optional role requirement (admin, moderator)
+ * @returns Middleware function that verifies auth and role
+ */
+export const authMiddleware = (requiredRole?: 'admin' | 'moderator') => {
+    return async (c: C, next: () => Promise<void>) => {
+        const token = getCookie(c, 'session');
+        
+        if (!token) {
+            return c.json({ error: 'Authentication required' }, 401);
+        }
+
+        try {
+            const payload = await verifyToken(token, c.env.JWT_SECRET);
+            
+            // Role check if a specific role is required
+            if (requiredRole) {
+                if (requiredRole === 'admin' && payload.role !== 'admin') {
+                    return c.json({ error: 'Admin privileges required' }, 403);
+                }
+                
+                if (requiredRole === 'moderator' && 
+                    payload.role !== 'admin' && 
+                    payload.role !== 'moderator') {
+                    return c.json({ error: 'Moderator privileges required' }, 403);
+                }
+            }
+            
+            c.set('user', payload);
+            await next();
+        } catch (error) {
+            return c.json({ error: 'Invalid or expired session' }, 401);
+        }
+    };
+};
