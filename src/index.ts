@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
 import { Env } from './types';
-import { getAssetManifest } from '@cloudflare/pages-plugin-static-assets';
 
 // Import all routers as default exports
 import authRouter from './api/auth';
@@ -68,16 +67,14 @@ app.route('/api/submissions', submissionsRouter);
 app.route('/api/votes', votingRouter);
 app.route('/api/favorites', favoritesRouter);
 
-// Static file serving
+// Static file serving using Workers Assets binding
 app.use('/*', serveStatic({ 
     root: './',
-    manifest: getAssetManifest(),
 }));
 
-// SPA fallback
+// SPA fallback - serve index.html for all non-API routes
 app.get('*', serveStatic({ 
     path: './index.html',
-    manifest: getAssetManifest(),
 }));
 
 export default app;
