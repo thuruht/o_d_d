@@ -46,10 +46,20 @@ const api = new Hono();
 
 // More flexible CORS configuration - use env variables in production
 api.use('/*', cors({
-  origin: ['*'], // In production, change to specific domains
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
-  maxAge: 86400, // 24 hours
-  credentials: true // to support cookies/auth
+    origin: (origin) => {
+        // TODO: IMPORTANT - For production, restrict this to your actual frontend domain(s)!
+        // Example for production:
+        // const allowedOrigins = ['https://yourdomain.com', 'https://www.yourdomain.com'];
+        // if (allowedOrigins.includes(origin)) {
+        //     return origin;
+        // }
+        // return undefined; // Or handle as an error/block
+        return origin; // Current permissive setting for development
+    },
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Custom-Auth'],
+    credentials: true,
+    maxAge: 86400,
 }));
 
 // Mount all API routers

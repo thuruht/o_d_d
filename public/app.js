@@ -1749,40 +1749,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddyu.png'; // Changed to oddyu.png
+            logoImg.src = 'oddyu.png'; // Ensure this is the correct path to your logo
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
             
-            // Find the text group to insert the logo before it
             const textGroup = navBrandContainer.querySelector('.nav-brand-text-group');
             if (textGroup) {
                 navBrandContainer.insertBefore(logoImg, textGroup);
             } else {
-                // Fallback if the text group structure isn't present
                 navBrandContainer.prepend(logoImg);
             }
 
-            // Add CSS for responsive logo sizing
-            const logoStyle = document.createElement('style');
-            logoStyle.textContent = `
-                #nav-logo {
-                    height: 50px; /* Adjusted for a larger logo */
-                    width: auto;  /* Maintain aspect ratio */
-                }
-                /* Responsive adjustments for the logo */
-                @media (max-width: 768px) {
-                    #nav-logo {
-                        height: 40px; 
-                    }
-                }
-                 @media (max-width: 480px) {
-                    #nav-logo {
-                        height: 30px;
-                    }
-                }
-            `;
-            document.head.appendChild(logoStyle);
-        }
+            
 
         document.getElementById('language-select').addEventListener('change', (e) => {
 
@@ -2216,9 +2194,3 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(poiStyles);
 }); 
-/*************  ✨ Windsurf Command 🌟  *************/
-// Dispatch a DOMContentLoaded event to ensure all scripts run after the DOM is fully loaded
-setTimeout(() => {
-    const event = new Event('DOMContentLoaded');
-    document.dispatchEvent(event);
-}, 100);

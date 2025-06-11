@@ -61,7 +61,9 @@ body {
 }
 .nav-brand-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; 
+    align-items: center; 
+    gap: 12px; /* Adjust as needed */
 }
 .nav-brand {
     font-family: var(--font-display);
@@ -77,6 +79,12 @@ body {
     font-size: 0.75rem;
     color: var(--muted-text-color);
     margin-top: -2px;
+}
+
+.nav-brand-text-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
 }
 
 .nav-controls {
@@ -484,4 +492,13 @@ body {
         height: auto;
         min-height: calc(100vh - 200px);
     }
+}
+
+/* Styling for the logo image itself */
+#nav-logo {
+    /* Using clamp for responsive height: min, preferred, max */
+    /* Adjust these values as needed for your design */
+    height: clamp(40px, 6vw, 70px); /* Example: min 40px, preferred 6% of viewport width, max 70px */
+    width: auto; /* Maintains the natural aspect ratio */
+    object-fit: contain; /* Ensures the image scales nicely within the dimensions */
 }
