@@ -1,13 +1,14 @@
 import { Hono } from 'hono';
-import { C, Env } from '../types';
+import { C, Env, AuthVariables } from '../types'; // Assuming AuthVariables is needed if c.get('user') is from authMiddleware
 import { authMiddleware } from '../utils/auth';
 import { logError } from '../utils/logging';
 
-export const votingRouter = new Hono<{ Bindings: Env }>();
+// Changed from 'export const votingRouter' to just 'const votingRouter'
+const votingRouter = new Hono<{ Bindings: Env, Variables: AuthVariables }>(); // Added AuthVariables to Hono generic
 
 // POST /votes/:locationId - Add or update a vote
-votingRouter.post('/:locationId', authMiddleware(), async (c: C) => {
-    const user = c.get('user');
+votingRouter.post('/:locationId', authMiddleware(), async (c: C) => { // Ensure C type is compatible or adjust
+    const user = c.get('user'); // This implies 'user' is set in AuthVariables
     const locationId = c.req.param('locationId');
     const { value, comment } = await c.req.json<{ value: number, comment?: string }>();
     
@@ -65,3 +66,5 @@ votingRouter.delete('/:locationId', authMiddleware(), async (c: C) => {
         return c.json({ error: 'Database operation failed' }, 500);
     }
 });
+
+export default votingRouter; // Added default export

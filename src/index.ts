@@ -11,7 +11,7 @@ import usersRouter from './api/users'; // Assuming this is a default export
 import adminRouter from './api/admin'; // Assuming this is a default export
 import reportsRouter from './api/reports'; // Corrected: Import default export
 import submissionsRouter from './api/submissions'; // Assuming this is a default export
-import votingRouter from './api/voting'; // Assuming this is a default export
+import votingRouter from './api/voting';
 import favoritesRouter from './api/favorites'; // Assuming this is a default export
 
 const app = new Hono<{ Bindings: Env }>();

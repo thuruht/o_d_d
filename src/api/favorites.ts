@@ -3,7 +3,7 @@ import { C, Env } from '../types';
 import { authMiddleware } from '../utils/auth';
 import { logError } from '../utils/logging';
 
-export const favoritesRouter = new Hono<{ Bindings: Env }>();
+const favoritesRouter = new Hono<{ Bindings: Env }>();
 
 favoritesRouter.get('/', authMiddleware(), async (c: C) => {
     const user = c.get('user');
@@ -60,3 +60,5 @@ favoritesRouter.delete('/:id', authMiddleware(), async (c: C) => {
         return c.json({ error: 'Failed to remove from favorites' }, 500);
     }
 });
+
+export default favoritesRouter;
