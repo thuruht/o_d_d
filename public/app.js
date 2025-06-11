@@ -868,21 +868,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             popup.getElement().addEventListener('click', (e) => {
-
-                const action = e.target.dataset.action;
-
-                const locationIdFromDataset = e.target.dataset.locationId; // Already sanitized if it came from popupContent
-
-                if (action === "add-review") handleReviewClick(locationIdFromDataset);
-
-                if (action === "upload-media") handleMediaClick(locationIdFromDataset);
-
-                if (action === "report-destination") handleReportClick(locationIdFromDataset);
+                const actionButton = e.target.closest('[data-action]');
+                if (actionButton) {
+                    const action = actionButton.dataset.action;
+                    const locationIdFromDataset = actionButton.dataset.locationId;
+                    
+                    if (action === "add-review") handleReviewClick(locationIdFromDataset);
+                    if (action === "upload-media") handleMediaClick(locationIdFromDataset);
+                    if (action === "report-destination") handleReportClick(locationIdFromDataset);
+                    return;
+                }
 
                 if (e.target.matches('.favorite-btn')) handleFavoriteClick(e);
-
-                if (e.target.closest('.popup-meta')) showUserProfileModal(e.target.closest('.popup-meta').dataset.userId); // userId already sanitized
-
+                
+                const userProfile = e.target.closest('.popup-meta');
+                if (userProfile) showUserProfileModal(userProfile.dataset.userId);
             });
 
         } catch (error) { console.error('Failed to get destination details', error); }
@@ -999,13 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-       
-
-
-
         modalManager.create('filters', t('filter_title'), `<div class="filter-section">${filterGridHTML()}</div>`, [{ id: 'clear-filters', class: 'btn-secondary', text: t('clear_filters') }, { id: 'apply-filters', class: 'btn-primary', text: t('apply_filters') }]);
-
-
 
         modalManager.create('edit-profile', t('edit_profile_title'), `<form id="edit-profile-form" onsubmit="return false;"><div class="form-group"><label for="profile-avatar">${t('avatar')}</label><input type="file" id="profile-avatar" class="form-control" accept="image/*"></div><div class="form-group"><label for="profile-bio">${t('bio')}</label><textarea id="profile-bio" class="form-control" rows="3"></textarea></div><div class="form-group"><label for="profile-website">${t('website')}</label><input type="url" id="profile-website" class="form-control" placeholder="https://..."></div><div class="form-group"><label for="profile-contact">${t('contact_info')}</label><input type="text" id="profile-contact" class="form-control"></div></form>`, [{ id: 'profile-cancel', class: 'btn-secondary', text: t('cancel') }, { id: 'save-profile-btn', class: 'btn-primary', text: t('save_changes') }]);
 
@@ -1203,6 +1197,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } else if (target.id === 'clear-filters') {
 
+                document.querySelectorAll('#modal-filters input[type="checkbox"]').forEach(el => el.checked = false);
+
+                currentFilters = { types: [], amenities: [] };
+
+            } else if (target.id === 'save-profile-btn') {
+
+                const avatarFile = document.getElementById('profile-avatar').files[0];
+
+                let avatar_url = currentUser.avatar_url;
+
+                if (avatarFile) {
+
+                    try {
+
+                        const { signedUrl, avatar_url: newUrl } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
+
+                        await fetch(signedUrl, { method: 'PUT', body: avatarFile });
+
                         avatar_url = newUrl;
 
                     } catch (error) { showToast(t('Avatar upload failed.'), 'error'); return; }
@@ -1230,33 +1242,32 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (target.id === 'media-submit') {
 
                 const files = document.getElementById('media-files').files;
-
                 const locationId = document.getElementById('media-location-id').value;
 
-                if (files.length === 0) return showToast(t('Please select files to upload'), 'error');
+                if (files.length === 0) {
+                    return showToast(t('Please select files to upload'), 'error');
+                }
 
                 for (const file of files) {
-
                     try {
-
-                        const { signedUrl } = await apiRequest('/media/upload-url', 'POST', { filename: file.name, contentType: file.type, locationId: locationId });
+                        const { signedUrl } = await apiRequest('/media/upload-url', 'POST', { 
+                            filename: file.name, 
+                            contentType: file.type, 
+                            locationId: locationId 
+                        });
 
                         await fetch(signedUrl, { method: 'PUT', body: file });
-
                         showToast(`${DOMPurify.sanitize(file.name)} ${t('uploaded for review.')}`, 'success');
-
-                    } catch (error) { console.error(`Upload failed for ${file.name}`, error); }
-
+                    } catch (error) {
+                        console.error(`Upload failed for ${file.name}`, error);
+                        showToast(`Failed to upload ${DOMPurify.sanitize(file.name)}`, 'error');
+                    }
                 }
 
                 modalManager.hide();
-
             } else if (target.matches('.admin-role-select')) {
-
                 const userId = target.dataset.userId;
-
                 const newRole = target.value;
-
                 const oldRole = target.dataset.currentRole;
 
 
@@ -1285,6 +1296,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 }
 
+            } else if (target.matches('.admin-submission-approve')) {
+                const subId = target.dataset.id;
+                if (!confirm('Are you sure you want to approve this submission?')) {
+                    return;
+                }
+                
+                try {
+                    await apiRequest(`/admin/submissions/${subId}/approve`, 'POST');
+                    showToast('Submission approved.', 'success');
+                    showAdminPanel(); // Refresh the admin panel
+                } catch (e) {
+                    showToast('Failed to approve submission.', 'error');
+                }
             } else if (target.matches('.admin-submission-reject')) {
 
                 const subId = target.dataset.id;
@@ -1318,26 +1342,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             } else if (target.matches('.admin-tab')) {
+    // De-activate all admin tabs and content first
+    document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
 
-                document.querySelectorAll('.admin-tab, .admin-tab-content').forEach(el => el.classList.remove('active'));
+    // Activate the clicked tab
+    target.classList.add('active');
 
-                target.classList.add('active');
-
-                const tabContentId = `admin-tab-${target.dataset.tab}`; // target.dataset.tab is static ('users', 'submissions', 'reports')
-
-                const tabContentElement = document.getElementById(tabContentId);
-
-                if (tabContentElement) {
-                    tabContentElement.classList.add('active');
-                    document.querySelectorAll('.info-tab').forEach(tab => {
-                        tab.setAttribute('aria-selected', tab === target ? 'true' : 'false');
-                    });
-                    document.querySelectorAll('.info-tab-content').forEach(content => {
-                        content.setAttribute('aria-hidden', content !== tabContentElement ? 'true' : 'false');
-                    });
-                }
-
-            } else if (target.matches('.info-tab')) {
+    // Activate the corresponding content pane
+    const tabContentId = `admin-tab-${target.dataset.tab}`;
+    const tabContentElement = document.getElementById(tabContentId);
+    if (tabContentElement) {
+        tabContentElement.classList.add('active');
+    }
+} else if (target.matches('.info-tab')) {
+                // Keep the existing info tab handler separate
                 document.querySelectorAll('.info-tab, .info-tab-content').forEach(el => el.classList.remove('active'));
                 target.classList.add('active');
                 const tabContentId = `info-tab-${target.dataset.tab}`;
@@ -1741,34 +1760,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const renderReportsList = (reports) => {
-
         return reports.map(rep => `
-
-            <li>
-
-                <span>${DOMPurify.sanitize(rep.reason)}</span>
-
-                <span>By: ${DOMPurify.sanitize(rep.reporter_username)}</span>
-
-                <div class="actions">
-
-                    <button class="btn btn-success btn-sm admin-report-resolve" data-id="${rep.id}" data-location="${rep.location_id}">Resolve</button>
-
-                </div>
-
-            </li>`).join('');
-
+            <li>
+                <span>${DOMPurify.sanitize(rep.reason)}</span>
+                <span>By: ${DOMPurify.sanitize(rep.reporter_username)}</span>
+                <div class="actions">
+                    <button class="btn btn-success btn-sm admin-report-resolve" data-id="${rep.id}" data-location="${rep.location_id}">Resolve</button>
+                </div>
+            </li>`).join('');
     };
-
-
 
     const setupAppEventListeners = () => {
         // Add logo with proper sizing using CSS clamp
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddyseus2
-            .png';
+            logoImg.src = 'oddyu.png';
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
             
@@ -1786,35 +1793,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('nav-login').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('login'); });
-
         document.getElementById('nav-register').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('register'); });
-
         document.getElementById('nav-logout').addEventListener('click', (e) => {
-
             e.preventDefault();
-
             apiRequest('/auth/logout', 'POST')
-
                 .then(() => {
-
                     currentUser = null;
-
                     updateUserUI(null);
-
                     showToast(t('logout_success'), 'success');
-
-                    loadDestinations();
-
                 })
-
-                .catch(error => { // Add this catch block
-
+                .catch(error => {
                     console.error('Logout failed:', error);
-
                     showToast(t('logout_error'), 'error');
-
                 });
-
         });
 
         document.getElementById('nav-add-destination').addEventListener('click', (e) => { 
@@ -1824,10 +1815,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const center = map.getCenter(); 
                 modal.querySelector('#loc-lat').value = center.lat; 
                 modal.querySelector('#loc-lng').value = center.lng; 
-            }); 
+            });
         });
-
-        document.getElementById('filters-button').addEventListener('click', () => modalManager.show('filters'));
 
         document.getElementById('nav-my-favorites').addEventListener('click', (e) => { 
             e.preventDefault(); 
@@ -1836,118 +1825,28 @@ document.addEventListener('DOMContentLoaded', () => {
             loadDestinations(); 
         });
 
-        document.querySelector('.nav-brand').addEventListener('click', (e) => { e.preventDefault(); favoritesViewActive = false; currentFilters = { types: [], amenities: [] }; document.getElementById('search-input').value = ''; loadDestinations(); map.flyTo(HOME_VIEW.center, HOME_VIEW.zoom); });
-
-        document.getElementById('nav-my-profile').addEventListener('click', (e) => { 
-            e.preventDefault(); 
-            if (!currentUser) return showToast(t('error_please_login'), 'error');
-            modalManager.show('edit-profile', () => {
-                document.getElementById('profile-bio').value = currentUser.bio || ''; 
-                document.getElementById('profile-website').value = currentUser.website || '';
-                document.getElementById('profile-contact').value = currentUser.contact || '';
-            }); 
-        });
-
-        document.getElementById('nav-admin').addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(); });
-
         document.getElementById('nav-info-btn').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('info'); });
-
-
-
-        const searchInput = document.getElementById('search-input');
-
-        const searchButton = document.getElementById('search-button');
-
-        const performSearch = async () => {
-
-            const query = searchInput.value.trim();
-
-            if (!query) {
-
-                favoritesViewActive = false;
-
-                loadDestinations();
-
-                return;
-
-            }
-
-            favoritesViewActive = false;
-
-            const results = await loadDestinations(query); // query is passed to API, not directly to HTML here
-
-            if (results.length === 0) {
-
-                geocodeAndPan(query); // geocodeAndPan handles sanitization if query is shown in a toast
-
-            }
-
-        };
-
-        searchButton.addEventListener('click', performSearch);
-
-        searchInput.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') performSearch(); 
-        });
-
-        searchInput.addEventListener('search', () => { if (searchInput.value === '') { favoritesViewActive = false; loadDestinations(); } });
-
-
-
-        document.getElementById('map-home-btn').addEventListener('click', () => map.flyTo(HOME_VIEW.center, HOME_VIEW.zoom));
-
-        document.getElementById('map-location-btn').addEventListener('click', () => {
-
-            map.locate({ setView: true, maxZoom: 16 });
-
-            map.on('locationfound', (e) => {
-
-                L.marker(e.latlng).addTo(locationsLayer).bindPopup(DOMPurify.sanitize(t("You are here!"))).openPopup();
-
-            });
-
-            map.on('locationerror', (e) => {
-
-                showToast(DOMPurify.sanitize(e.message), 'error'); // Sanitize Leaflet's error message
-
-            });
-
-        });
-    }; // ADD THIS MISSING CLOSING BRACE
-
-    const supportsR2Features = () => {
-        try {
-            return typeof fetch === 'function' && 
-                   typeof URL === 'function' && 
-                   typeof Blob === 'function';
-        } catch (e) {
-            return false;
-        }
     };
 
+    const init = async () => {
 
-    const handleMediaUpload = async (file, locationId) => {
-        if (!supportsR2Features()) {
-            showToast('Your browser does not support media uploads', 'error');
-            return false;
-        }
-        
-        try {
-            const { signedUrl } = await apiRequest('/media/upload-url', 'POST', { 
-                filename: file.name, 
-                contentType: file.type,
-                locationId: locationId 
-            });
-            await fetch(signedUrl, { method: 'PUT', body: file });
-            return true;
-        } catch (error) {
-            console.error(`Upload failed for ${file.name}`, error);
-            return false;
-        }
+        await checkLoginState();
+
+        createModals(); // Modals are created with t() and static content mostly
+
+        updateUIForLanguage();
+        initMap();
     };
 
-    // Add this function to load POI data from Overpass API
+    init();
+
+    // Add this function after your other function definitions
     async function loadPOILayer(query, layerGroup, icon) {
+        // Prevent re-fetching if data is already loaded
+        if (layerGroup.getLayers().length > 0) {
+            return;
+        }
+
         const overpassUrl = 'https://overpass-api.de/api/interpreter';
         const bbox = map.getBounds();
         const south = bbox.getSouth();
@@ -1956,13 +1855,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const east = bbox.getEast();
         
         const overpassQuery = `
-            [out:json][timeout:25];
-            (
-              ${query}(${south},${west},${north},${east});
-            );
-            out geom;
-        `;
-        
+        [out:json][timeout:25];
+        (
+          ${query}(${south},${west},${north},${east});
+        );
+        out geom;
+    `;
+    
         try {
             const response = await fetch(overpassUrl, {
                 method: 'POST',
@@ -1989,33 +1888,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error('Error loading POI data:', error);
+            showToast('Could not load POI data.', 'error');
         }
     }
-
-    const init = async () => {
-
-        await checkLoginState();
-
-        createModals(); // Modals are created with t() and static content mostly
-
-        updateUIForLanguage();
-
-        initMap();
-
-        setupAppEventListeners();
-
-        setupModalEventListeners();
-
-    };
-
-    init();
-
-    // REMOVE THE MANUAL DOMContentLoaded DISPATCH:
-    // The following setTimeout block should be DELETED:
-    /*
-    setTimeout(() => {
-        const event = new Event('DOMContentLoaded');
-        document.dispatchEvent(event);
-    }, 100);
-    */
 }); // End of main DOMContentLoaded listener
