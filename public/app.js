@@ -1745,35 +1745,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const setupAppEventListeners = () => {
-        // Add logo to nav-brand
-        const navBrand = document.querySelector('.nav-brand');
-        if (navBrand) {
-            // Keep any existing text as a fallback
-            const existingText = navBrand.textContent;
-            navBrand.innerHTML = `
-                <img src="oddyy.png" alt="O.D.D. Map Logo" id="nav-logo">
-                <span class="nav-brand-text">${existingText}</span>
-            `;
+        // Add logo to nav-brand-container
+        const navBrandContainer = document.querySelector('.nav-brand-container');
+        if (navBrandContainer) {
+            const logoImg = document.createElement('img');
+            logoImg.src = 'oddyu.png'; // Changed to oddyu.png
+            logoImg.alt = 'O.D.D. Map Logo';
+            logoImg.id = 'nav-logo';
             
+            // Find the text group to insert the logo before it
+            const textGroup = navBrandContainer.querySelector('.nav-brand-text-group');
+            if (textGroup) {
+                navBrandContainer.insertBefore(logoImg, textGroup);
+            } else {
+                // Fallback if the text group structure isn't present
+                navBrandContainer.prepend(logoImg);
+            }
+
             // Add CSS for responsive logo sizing
             const logoStyle = document.createElement('style');
             logoStyle.textContent = `
                 #nav-logo {
-                    height: clamp(30px, 5vw, 50px);
-                    max-width: 100%;
-                    vertical-align: middle;
-                    margin-right: 8px;
+                    height: 50px; /* Adjusted for a larger logo */
+                    width: auto;  /* Maintain aspect ratio */
                 }
-                .nav-brand-text {
-                    display: inline-block;
-                    vertical-align: middle;
-                }
-                @media (max-width: 600px) {
-                    .nav-brand-text {
-                        display: none;
-                    }
+                /* Responsive adjustments for the logo */
+                @media (max-width: 768px) {
                     #nav-logo {
-                        height: clamp(24px, 4vw, 40px);
+                        height: 40px; 
+                    }
+                }
+                 @media (max-width: 480px) {
+                    #nav-logo {
+                        height: 30px;
                     }
                 }
             `;
@@ -2211,7 +2215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(poiStyles);
-    }); 
+}); 
 /*************  ✨ Windsurf Command 🌟  *************/
 // Dispatch a DOMContentLoaded event to ensure all scripts run after the DOM is fully loaded
 setTimeout(() => {
