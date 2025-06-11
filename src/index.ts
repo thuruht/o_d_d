@@ -1,19 +1,18 @@
-// src/index.ts
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serveStatic } from 'hono/cloudflare-workers';
 import { Env } from './types';
+import { getAssetManifest } from '@cloudflare/pages-plugin-static-assets';
 
-// Import all the API routers
-import { adminRouter } from './api/admin';
-import { authRouter } from './api/auth';
-import { favoritesRouter } from './api/favorites';
-import { locationsRouter } from './api/locations';
-import { mediaRouter } from './api/media';
-import { reportsRouter } from './api/reports';
-import { submissionsRouter } from './api/submissions';
-import { usersRouter } from './api/users';
-import { votingRouter } from './api/voting';
+import authRouter from './api/auth'; // Assuming this is a default export
+import locationsRouter from './api/locations'; // Assuming this is a default export
+import mediaRouter from './api/media'; // Assuming this is a default export
+import usersRouter from './api/users'; // Assuming this is a default export
+import adminRouter from './api/admin'; // Assuming this is a default export
+import reportsRouter from './api/reports'; // Corrected: Import default export
+import submissionsRouter from './api/submissions'; // Assuming this is a default export
+import votingRouter from './api/voting'; // Assuming this is a default export
+import favoritesRouter from './api/favorites'; // Assuming this is a default export
 
 const app = new Hono<{ Bindings: Env }>();
 
