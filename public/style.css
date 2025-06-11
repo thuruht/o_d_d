@@ -465,10 +465,11 @@ body {
   margin-bottom: 10px;
 }
 .oddyseus img {
-  width: 80%;
+  width: 60%;
   height: auto
   border-radius: 50%;
   margin-right: 10px;
+  align-self: center;
 }
 .info-tab-content p, .info-tab-content li {
   margin-bottom: 10px;
