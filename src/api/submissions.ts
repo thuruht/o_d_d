@@ -1,43 +1,26 @@
 import { Hono } from 'hono';
-import { C, Env, Submission } from '../types';
-import { authMiddleware } from '../utils/auth';
-import { logError } from '../utils/logging';
+import { authMiddleware, AuthVariables } from '../utils/auth';
+import { Env } from '../types';
 
-export const submissionsRouter = new Hono<{ Bindings: Env }>();
+const submissions = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
-submissionsRouter.get('/', authMiddleware('moderator'), async (c: C) => {
+submissions.use('*', authMiddleware);
+
+submissions.get('/', async (c) => {
+    const user = c.get('currentUser');
+    
     try {
-        const stmt = c.env.DB.prepare(`
-            SELECT s.*, u.username as submitter_username
-            FROM submissions s
-            JOIN users u ON s.user_id = u.id
-            WHERE s.status = 'pending'
-            ORDER BY s.created_at ASC
-        `);
-        const { results } = await stmt.all<Submission>();
-        return c.json(results);
-    } catch (e: any) {
-        logError('Submissions', 'Failed to fetch submissions', e);
-        return c.json({ error: 'Database query failed' }, 500);
+        const userSubmissions = await c.env.DB.prepare(`
+            SELECT * FROM submissions 
+            WHERE submitted_by = ? 
+            ORDER BY created_at DESC
+        `).bind(user.id).all();
+        
+        return c.json(userSubmissions.results);
+    } catch (error) {
+        console.error('Error fetching submissions:', error);
+        return c.json({ error: 'Failed to fetch submissions' }, 500);
     }
 });
 
-submissionsRouter.get('/:id', authMiddleware('moderator'), async (c: C) => {
-    const { id } = c.req.param();
-    try {
-        const stmt = c.env.DB.prepare(`
-            SELECT s.*, u.username as submitter_username
-            FROM submissions s
-            JOIN users u ON s.user_id = u.id
-            WHERE s.id = ?
-        `);
-        const submission = await stmt.bind(id).first<Submission>();
-        if (!submission) {
-            return c.json({ error: 'Submission not found' }, 404);
-        }
-        return c.json(submission);
-    } catch (e: any) {
-        logError('Submissions', `Failed to fetch submission ${id}`, e);
-        return c.json({ error: 'Database query failed' }, 500);
-    }
-});
+export default submissions;

@@ -68,17 +68,19 @@ body {
 .nav-brand {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(1.5rem, 3.5vw, 1.8rem);
     color: var(--secondary-color);
     text-decoration: none;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    line-height: 1;
+    line-height: 1.2;
+    margin-bottom: 0;
 }
 .nav-subheading {
     font-family: var(--font-heading);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--muted-text-color);
-    margin-top: -2px;
+    margin-top: 2px;
+    line-height: 1.1;
 }
 
 .nav-brand-text-group {
@@ -495,10 +497,9 @@ body {
 }
 
 /* Styling for the logo image itself */
+/* Logo styling with clamp for responsive sizing */
 #nav-logo {
-    /* Using clamp for responsive height: min, preferred, max */
-    /* Adjust these values as needed for your design */
-    height: clamp(40px, 6vw, 70px); /* Example: min 40px, preferred 6% of viewport width, max 70px */
-    width: auto; /* Maintains the natural aspect ratio */
-    object-fit: contain; /* Ensures the image scales nicely within the dimensions */
+    height: clamp(40px, 6vw, 70px); /* Responsive height with natural aspect ratio */
+    width: auto; /* Maintains natural aspect ratio */
+    object-fit: contain;
 }

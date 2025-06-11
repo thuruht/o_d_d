@@ -1,16 +1,35 @@
 import { Hono } from 'hono';
+import { authMiddleware, AuthVariables } from '../utils/auth';
+import { Env, Submission, User, Location, Report } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { C, Env, Submission, User, Location, Report } from '../types';
-import { authMiddleware } from '../utils/auth';
 
-export const adminRouter = new Hono<{ Bindings: Env }>();
+const admin = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
-adminRouter.get('/users', authMiddleware('admin'), async (c: C) => {
-    const { results } = await c.env.DB.prepare("SELECT id, username, email, role, created_at, suspended FROM users").all<User>();
-    return c.json(results);
+admin.use('*', authMiddleware);
+
+// Middleware to check admin/moderator role
+admin.use('*', async (c, next) => {
+    const user = c.get('currentUser');
+    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
+        return c.json({ error: 'Insufficient permissions' }, 403);
+    }
+    await next();
 });
 
-adminRouter.put('/users/:id', authMiddleware('admin'), async (c: C) => {
+admin.get('/users', async (c) => {
+    try {
+        const users = await c.env.DB.prepare(
+            'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
+        ).all<User>();
+        
+        return c.json(users.results);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return c.json({ error: 'Failed to fetch users' }, 500);
+    }
+});
+
+admin.put('/users/:id', async (c) => {
     const { id } = c.req.param();
     const { role, suspended } = await c.req.json<{ role?: 'user' | 'moderator' | 'admin', suspended?: boolean }>();
 
@@ -35,17 +54,26 @@ adminRouter.put('/users/:id', authMiddleware('admin'), async (c: C) => {
     return success ? c.json({ message: 'User updated' }) : c.json({ error: 'Failed to update user' }, 500);
 });
 
-adminRouter.get('/submissions', authMiddleware('moderator'), async (c: C) => {
-     const { results } = await c.env.DB.prepare(`
-        SELECT s.*, u.username as submitter_username FROM submissions s
-        JOIN users u ON s.user_id = u.id WHERE s.status = 'pending'
-     `).all<Submission>();
-     return c.json(results);
+admin.get('/submissions', async (c) => {
+    try {
+        const submissions = await c.env.DB.prepare(`
+            SELECT s.*, u.username as submitter_username 
+            FROM submissions s 
+            JOIN users u ON s.submitted_by = u.id 
+            WHERE s.status = 'pending'
+            ORDER BY s.created_at DESC
+        `).all();
+        
+        return c.json(submissions.results);
+    } catch (error) {
+        console.error('Error fetching submissions:', error);
+        return c.json({ error: 'Failed to fetch submissions' }, 500);
+    }
 });
 
-adminRouter.post('/submissions/:id/approve', authMiddleware('moderator'), async (c: C) => {
+admin.post('/submissions/:id/approve', async (c) => {
     const { id } = c.req.param();
-    const admin = c.get('user');
+    const adminUser = c.get('user');
     
     const submission = await c.env.DB.prepare("SELECT * FROM submissions WHERE id = ? AND status = 'pending'").bind(id).first<Submission>();
     if (!submission) {
@@ -61,7 +89,7 @@ adminRouter.post('/submissions/:id/approve', authMiddleware('moderator'), async 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')`)
                 .bind(locationId, data.name, data.description, data.latitude, data.longitude, data.type, JSON.stringify(data.properties || {}), submission.user_id),
             c.env.DB.prepare("UPDATE submissions SET status = 'approved', admin_notes = ? WHERE id = ?")
-                .bind(`Approved by ${admin.id}`, id)
+                .bind(`Approved by ${adminUser.id}`, id)
         ]);
         return c.json({ message: 'New location approved', locationId });
     } else {
@@ -89,45 +117,55 @@ adminRouter.post('/submissions/:id/approve', authMiddleware('moderator'), async 
         await c.env.DB.batch([
             c.env.DB.prepare(updateQuery).bind(...updateParams),
             c.env.DB.prepare("UPDATE submissions SET status = 'approved', admin_notes = ? WHERE id = ?")
-                .bind(`Approved by ${admin.id}`, id)
+                .bind(`Approved by ${adminUser.id}`, id)
         ]);
         return c.json({ message: 'Location edit approved' });
     }
 });
 
-adminRouter.post('/submissions/:id/reject', authMiddleware('moderator'), async (c: C) => {
+admin.post('/submissions/:id/reject', async (c) => {
     const { id } = c.req.param();
     const { reason } = await c.req.json<{reason: string}>();
-    const admin = c.get('user');
+    const adminUser = c.get('user');
     
     const result = await c.env.DB.prepare("UPDATE submissions SET status = 'rejected', admin_notes = ? WHERE id = ? AND status = 'pending'")
-        .bind(`Rejected by ${admin.id}: ${reason}`, id).run();
+        .bind(`Rejected by ${adminUser.id}: ${reason}`, id).run();
 
     if (result.changes === 0) return c.json({ error: 'Submission not found or already processed'}, 404);
     return c.json({ message: 'Submission rejected' });
 });
 
-adminRouter.get('/reports', authMiddleware('moderator'), async (c:C) => {
-    const { results } = await c.env.DB.prepare(`
-        SELECT r.*, u.username as reporter_username FROM reports r
-        JOIN users u ON r.reporter_id = u.id
-        WHERE r.status = 'open'
-    `).all<Report>();
-    return c.json(results);
+admin.get('/reports', async (c) => {
+    try {
+        const reports = await c.env.DB.prepare(`
+            SELECT r.*, u.username as reporter_username 
+            FROM reports r 
+            JOIN users u ON r.reported_by = u.id 
+            WHERE r.status = 'open'
+            ORDER BY r.created_at DESC
+        `).all();
+        
+        return c.json(reports.results);
+    } catch (error) {
+        console.error('Error fetching reports:', error);
+        return c.json({ error: 'Failed to fetch reports' }, 500);
+    }
 });
 
-adminRouter.post('/reports/:id/resolve', authMiddleware('moderator'), async (c: C) => {
+admin.post('/reports/:id/resolve', async (c) => {
     const { id } = c.req.param();
     const { action } = await c.req.json<{action: 'resolved' | 'dismissed'}>();
-    const admin = c.get('user');
+    const adminUser = c.get('user');
 
     if (!['resolved', 'dismissed'].includes(action)) {
         return c.json({ error: 'Invalid action'}, 400);
     }
     
     const result = await c.env.DB.prepare("UPDATE reports SET status = ?, resolved_by = ?, resolved_at = ? WHERE id = ? AND status = 'open'")
-        .bind(action, admin.id, new Date().toISOString(), id).run();
+        .bind(action, adminUser.id, new Date().toISOString(), id).run();
 
     if (result.changes === 0) return c.json({ error: 'Report not found or already processed'}, 404);
     return c.json({ message: `Report has been ${action}`});
 });
+
+export default admin;

@@ -1,64 +1,61 @@
 import { Hono } from 'hono';
-import { C, Env } from '../types';
-import { authMiddleware } from '../utils/auth';
-import { logError } from '../utils/logging';
+import { authMiddleware, AuthVariables } from '../utils/auth';
+import { Env } from '../types';
 
-const favoritesRouter = new Hono<{ Bindings: Env }>();
+const favorites = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
-favoritesRouter.get('/', authMiddleware(), async (c: C) => {
-    const user = c.get('user');
+favorites.use('*', authMiddleware);
 
+favorites.get('/', async (c) => {
+    const user = c.get('currentUser');
+    
     try {
-        const favorites = await c.env.DB.prepare(`
-            SELECT f.location_id, l.name, l.description, l.latitude, l.longitude, l.type,
-                   l.properties, l.created_at, f.created_at as favorited_at
-            FROM favorites f
-            JOIN locations l ON f.location_id = l.id
-            WHERE f.user_id = ?
-            ORDER BY f.created_at DESC
+        const userFavorites = await c.env.DB.prepare(`
+            SELECT l.*, u.username as creator_username, u.avatar_url as creator_avatar_url,
+                   true as is_favorite
+            FROM user_favorites uf
+            JOIN locations l ON uf.location_id = l.id
+            LEFT JOIN users u ON l.created_by = u.id
+            WHERE uf.user_id = ?
         `).bind(user.id).all();
-
-        return c.json(favorites.results);
-    } catch (e: any) {
-        logError('Favorites', 'Failed to fetch favorites', e);
+        
+        return c.json(userFavorites.results);
+    } catch (error) {
+        console.error('Error fetching favorites:', error);
         return c.json({ error: 'Failed to fetch favorites' }, 500);
     }
 });
 
-favoritesRouter.post('/:id', authMiddleware(), async (c: C) => {
-    const user = c.get('user');
-    const locationId = c.req.param('id');
-
+favorites.post('/:locationId', async (c) => {
+    const user = c.get('currentUser');
+    const locationId = c.req.param('locationId');
+    
     try {
         await c.env.DB.prepare(
-            'INSERT INTO favorites (user_id, location_id) VALUES (?, ?)'
+            'INSERT OR IGNORE INTO user_favorites (user_id, location_id) VALUES (?, ?)'
         ).bind(user.id, locationId).run();
         
-        return c.json({ message: 'Location added to favorites' });
-    } catch (e: any) {
-        logError('Favorites', `Failed to add location ${locationId} to favorites`, e);
-        return c.json({ error: 'Failed to add to favorites' }, 500);
+        return c.json({ message: 'Added to favorites' }, 201);
+    } catch (error) {
+        console.error('Error adding favorite:', error);
+        return c.json({ error: 'Failed to add favorite' }, 500);
     }
 });
 
-favoritesRouter.delete('/:id', authMiddleware(), async (c: C) => {
-    const user = c.get('user');
-    const locationId = c.req.param('id');
-
+favorites.delete('/:locationId', async (c) => {
+    const user = c.get('currentUser');
+    const locationId = c.req.param('locationId');
+    
     try {
-        const result = await c.env.DB.prepare(
-            'DELETE FROM favorites WHERE user_id = ? AND location_id = ?'
+        await c.env.DB.prepare(
+            'DELETE FROM user_favorites WHERE user_id = ? AND location_id = ?'
         ).bind(user.id, locationId).run();
         
-        if (result.changes === 0) {
-            return c.json({ error: 'Location not found in favorites' }, 404);
-        }
-        
-        return c.json({ message: 'Location removed from favorites' });
-    } catch (e: any) {
-        logError('Favorites', `Failed to remove location ${locationId} from favorites`, e);
-        return c.json({ error: 'Failed to remove from favorites' }, 500);
+        return c.json({ message: 'Removed from favorites' });
+    } catch (error) {
+        console.error('Error removing favorite:', error);
+        return c.json({ error: 'Failed to remove favorite' }, 500);
     }
 });
 
-export default favoritesRouter;
+export default favorites;

@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
+import { setCookie, deleteCookie } from 'hono/cookie';
 import { v4 as uuidv4 } from 'uuid';
 import { C, Env, User, AuthPayload } from '../types';
 import { hashPassword, comparePasswords } from '../utils/crypto';
 import { createToken, authMiddleware } from '../utils/auth';
-import { setCookie, deleteCookie } from 'hono/cookie';
 
-export const authRouter = new Hono<{ Bindings: Env }>();
+const authRouter = new Hono<{ Bindings: Env }>();
 
 authRouter.post('/register', async (c: C) => {
     const { username, email, password } = await c.req.json();
@@ -78,7 +78,6 @@ authRouter.post('/login', async (c: C) => {
     }
     const token = await createToken(payload, c.env.JWT_SECRET);
     
-    // Set the token as an HTTP-only cookie
     setCookie(c, 'session', token, {
         httpOnly: true,
         secure: true,
@@ -90,13 +89,10 @@ authRouter.post('/login', async (c: C) => {
     return c.json({
         message: 'Login successful',
         user: { id: user.id, role: user.role, username: user.username }
-        // token no longer sent in response body
     });
 });
 
-// Add logout endpoint
 authRouter.post('/logout', async (c: C) => {
-    // Clear the session cookie
     deleteCookie(c, 'session', {
         httpOnly: true,
         secure: true,
@@ -106,12 +102,11 @@ authRouter.post('/logout', async (c: C) => {
     return c.json({ message: 'Logged out successfully' });
 });
 
-// Fix in the /me endpoint - Use id instead of userId
 authRouter.get('/me', authMiddleware(), async (c: C) => {
     const userPayload = c.get('user');
     const user = await c.env.DB.prepare(
         'SELECT id, username, email, role, created_at FROM users WHERE id = ?'
-    ).bind(userPayload.id).first<Omit<User, 'password_hash'>>(); // CHANGED: userPayload.userId to userPayload.id
+    ).bind(userPayload.id).first<Omit<User, 'password_hash'>>();
 
     if (!user) {
         return c.json({ error: 'User not found' }, 404);
@@ -119,3 +114,5 @@ authRouter.get('/me', authMiddleware(), async (c: C) => {
 
     return c.json(user);
 });
+
+export default authRouter;
