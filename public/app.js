@@ -515,16 +515,30 @@ document.addEventListener('DOMContentLoaded', () => {
             .setView(HOME_VIEW.center, HOME_VIEW.zoom);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // --- Base Layers using Leaflet Providers ---
+        // --- Base Layers using Leaflet Providers (FIXED STAMEN PROVIDERS) ---
         const street = L.tileLayer.provider('OpenStreetMap.Mapnik');
         const satellite = L.tileLayer.provider('Esri.WorldImagery');
         const topo = L.tileLayer.provider('OpenTopoMap');
         const cartoPositron = L.tileLayer.provider('CartoDB.Positron');
         const cartoVoyager = L.tileLayer.provider('CartoDB.Voyager'); 
         const cartoDark = L.tileLayer.provider('CartoDB.DarkMatter');
-        const stamenTerrain = L.tileLayer.provider('Stamen.Terrain');
-        const stamenTonerLite = L.tileLayer.provider('Stamen.TonerLite');
-        const stamenWatercolor = L.tileLayer.provider('Stamen.Watercolor');
+        
+        // REPLACE STAMEN PROVIDERS WITH DIRECT TILE LAYERS
+        const stamenTerrain = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        });
+        
+        const stamenTonerLite = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        });
+        
+        const stamenWatercolor = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg', {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            maxZoom: 16
+        });
+        
         const openPtMap = L.tileLayer.provider('OpenPtMap');
         const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
@@ -985,6 +999,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+       
+
+
+
         modalManager.create('filters', t('filter_title'), `<div class="filter-section">${filterGridHTML()}</div>`, [{ id: 'clear-filters', class: 'btn-secondary', text: t('clear_filters') }, { id: 'apply-filters', class: 'btn-primary', text: t('apply_filters') }]);
 
 
@@ -1184,24 +1202,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 favoritesViewActive = false; loadDestinations(document.getElementById('search-input').value.trim()); modalManager.hide();
 
             } else if (target.id === 'clear-filters') {
-
-                document.querySelectorAll('#modal-filters input[type="checkbox"]').forEach(el => el.checked = false);
-
-                currentFilters = { types: [], amenities: [] };
-
-            } else if (target.id === 'save-profile-btn') {
-
-                const avatarFile = document.getElementById('profile-avatar').files[0];
-
-                let avatar_url = currentUser.avatar_url;
-
-                if (avatarFile) {
-
-                    try {
-
-                        const { signedUrl, avatar_url: newUrl } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
-
-                        await fetch(signedUrl, { method: 'PUT', body: avatarFile });
 
                         avatar_url = newUrl;
 
@@ -1767,7 +1767,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddyseus.png';
+            logoImg.src = 'oddyseus2
+            .png';
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
             

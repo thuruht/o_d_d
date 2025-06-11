@@ -237,6 +237,7 @@ body {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 250px;
 }
 .leaflet-control-layers-list {
     max-height: 400px;
@@ -245,6 +246,7 @@ body {
 .leaflet-control-layers label {
     font-size: 14px;
     line-height: 1.5;
+    padding: 4px 0;
 }
 .temporary-marker-popup .leaflet-popup-content-wrapper {
     background-color: var(--primary-color);
@@ -485,6 +487,7 @@ body {
   line-height: 1.5;
 }
 
+/* POI Icon Styling */
 .poi-icon {
     background: rgba(255, 255, 255, 0.9);
     border: 2px solid #333;
@@ -492,44 +495,7 @@ body {
     text-align: center;
     line-height: 16px;
     font-size: 12px;
-}
-
-@media (max-width: 992px) {
-    body { overflow-y: auto; }
-    .nav-container { flex-wrap: wrap; row-gap: 1rem; }
-    .nav-brand-container { width: 100%; text-align: center; margin-bottom: 0; }
-    
-    /* UPDATED NAV-CONTROLS FOR MOBILE */
-    .nav-controls {
-        order: 3;
-        width: 100%;
-        max-width: none;
-        flex-direction: row; /* Keep elements in a row */
-        gap: 0.5rem; /* Reduce gap */
-    }
-    
-    #search-input {
-        padding: 0.5rem 0.75rem; /* Make search input smaller */
-        font-size: 0.9rem;
-    }
-    
-    .nav-controls .btn {
-        padding: 0.5rem 0.75rem; /* Make buttons smaller */
-        font-size: 0.9rem;
-    }
-    /* END OF UPDATED STYLES */
-
-    .nav-links { order: 2; width: 100%; justify-content: center; }
-    #main-content {
-        height: auto;
-        min-height: calc(100vh - 200px);
-    }
-}
-
-/* Styling for the logo image itself */
-/* Logo styling with clamp for responsive sizing */
-#nav-logo {
-    height: clamp(40px, 6vw, 70px); /* Responsive height with natural aspect ratio */
-    width: auto; /* Maintains natural aspect ratio */
-    object-fit: contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
