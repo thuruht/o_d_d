@@ -1,103 +1,142 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { authMiddleware, AuthVariables } from '../utils/auth';
+import { Env } from '../types';
 import { nanoid } from 'nanoid';
-import { eq } from 'drizzle-orm';
-import { users } from '../db/schema';
-import { requireAuth } from '../utils/auth';
-import { Env, UserProfile } from '../types';
-import { logError } from '../utils/logging';
 
-export const usersRouter = new Hono<{ Bindings: Env }>();
+const avatarUploadSchema = z.object({
+    filename: z.string().min(1).max(255),
+});
 
-// GET /api/users/:id
-usersRouter.get('/:id', async (c) => {
-    const { id } = c.req.param();
+const users = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+
+users.use('*', authMiddleware);
+
+users.get('/:id', async (c) => {
+    const userId = c.req.param('id');
+    
     try {
-        const user = await c.env.DB.select({
-            id: users.id,
-            username: users.username,
-            avatar_url: users.avatar_url,
-            bio: users.bio,
-            website: users.website,
-            role: users.role,
-        }).from(users).where(eq(users.id, id)).get();
-
+        const user = await c.env.DB.prepare(
+            'SELECT id, username, role, created_at, avatar_url FROM users WHERE id = ?'
+        ).bind(userId).first();
+        
         if (!user) {
             return c.json({ error: 'User not found' }, 404);
         }
+        
         return c.json(user);
     } catch (error) {
-        console.error('Failed to fetch user:', error);
+        console.error('Error fetching user:', error);
         return c.json({ error: 'Failed to fetch user' }, 500);
     }
 });
 
+// Direct avatar upload
+users.post('/avatar-upload-direct', async (c) => {
+    const user = c.get('currentUser');
+    
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    try {
+        const formData = await c.req.formData();
+        const file = formData.get('avatar') as File;
+        
+        if (!file) {
+            return c.json({ error: 'No avatar file provided' }, 400);
+        }
 
-// GET /api/users/me
-usersRouter.get('/me', requireAuth, (c) => {
-    const user = c.get('user');
-    return c.json(user);
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            return c.json({ error: 'File must be an image' }, 400);
+        }
+
+        // Generate unique key for the avatar
+        const key = `avatars/${user.id}/${nanoid()}.jpg`;
+        
+        // Upload directly to R2
+        await c.env.MEDIA_BUCKET.put(key, file.stream(), {
+            httpMetadata: {
+                contentType: file.type,
+            },
+            customMetadata: {
+                'uploaded-by': user.id,
+                'type': 'avatar',
+                'original-filename': file.name
+            }
+        });
+        
+        // Construct the public URL for the avatar
+        // You'll need to add R2_PUBLIC_URL to your environment variables
+        const avatarUrl = `${c.env.R2_PUBLIC_URL}/${key}`;
+        
+        // Update user's avatar URL in database
+        await c.env.DB.prepare(
+            'UPDATE users SET avatar_url = ? WHERE id = ?'
+        ).bind(avatarUrl, user.id).run();
+        
+        return c.json({ 
+            message: 'Avatar updated successfully', 
+            avatarUrl,
+            key
+        });
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        return c.json({ error: 'Failed to upload avatar' }, 500);
+    }
 });
 
-
-// PUT /api/users/me
-usersRouter.put(
-    '/me',
-    requireAuth,
-    zValidator('json', UserProfile.pick({ bio: true, website: true, contact: true, avatar_url: true }).partial()),
-    async (c) => {
-        const user = c.get('user');
-        const profileData = c.req.valid('json');
-        try {
-            const updatedUser = await c.env.DB.update(users)
-                .set({ ...profileData, updated_at: new Date() })
-                .where(eq(users.id, user.id))
-                .returning()
-                .get();
-
-            return c.json(updatedUser);
-        } catch (e: any) {
-            logError('Users', 'Failed to update user profile', e);
-            return c.json({ error: 'Failed to update profile' }, 500);
-        }
+// Get avatar upload key (alternative approach)
+users.post('/avatar-upload-key', zValidator('json', avatarUploadSchema), async (c) => {
+    const user = c.get('currentUser');
+    const { filename } = c.req.valid('json');
+    
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
     }
-);
-
-
-// POST /api/users/me/avatar-upload-url
-usersRouter.post(
-    '/me/avatar-upload-url',
-    requireAuth,
-    zValidator('json', z.object({
-      contentType: z.string(),
-    })),
-    async (c) => {
-      const user = c.get('user');
-      const { contentType } = c.req.valid('json');
-      const key = `avatars/${user.id}/${nanoid()}.jpg`;
-  
-      try {
-        // --- FIX: Uses the correct R2 method 'createPresignedUrl' with the proper object structure. ---
-        const signedUrl = await c.env.MEDIA_BUCKET.createPresignedUrl({
-          key,
-          method: 'PUT',
-          options: {
-            expires: 600, // 10 minutes
-            metadata: {
-              contentType,
-              userId: user.id,
-            },
-          },
+    
+    try {
+        // Generate unique key for the avatar
+        const key = `avatars/${user.id}/${nanoid()}.jpg`;
+        
+        return c.json({ 
+            key,
+            message: 'Use this key for direct upload to R2'
         });
-  
-        // This requires you to set `R2_PUBLIC_URL` in your wrangler.jsonc / .dev.vars
-        const avatar_url = `${c.env.R2_PUBLIC_URL}/${key}`;
-  
-        return c.json({ signedUrl, avatar_url });
-      } catch (e: any) {
-        logError('Users', 'Failed to generate avatar upload URL', e);
-        return c.json({ error: 'Failed to generate upload URL' }, 500);
+    } catch (error) {
+        console.error('Error generating avatar key:', error);
+        return c.json({ error: 'Failed to generate upload key' }, 500);
     }
+});
+
+// Confirm avatar upload (for frontend to call after successful direct upload)
+users.post('/avatar-confirm', async (c) => {
+    const user = c.get('currentUser');
+    const { key } = await c.req.json();
+    
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
     }
-);
+    
+    try {
+        // Construct the public URL for the avatar
+        const avatarUrl = `${c.env.R2_PUBLIC_URL}/${key}`;
+        
+        // Update user's avatar URL in database
+        await c.env.DB.prepare(
+            'UPDATE users SET avatar_url = ? WHERE id = ?'
+        ).bind(avatarUrl, user.id).run();
+        
+        return c.json({ 
+            message: 'Avatar updated successfully', 
+            avatarUrl 
+        });
+    } catch (error) {
+        console.error('Error confirming avatar upload:', error);
+        return c.json({ error: 'Failed to update avatar' }, 500);
+    }
+});
+
+export default users;
