@@ -515,22 +515,62 @@ document.addEventListener('DOMContentLoaded', () => {
             .setView(HOME_VIEW.center, HOME_VIEW.zoom);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // --- Base Layers (your existing map styles) ---
-        const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' });
-        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' });
-        const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap' });
-        const baseMaps = { "Street": street, "Satellite": satellite, "Topographic": topo };
+        // --- Base Layers using Leaflet Providers ---
+        const street = L.tileLayer.provider('OpenStreetMap.Mapnik');
+        const satellite = L.tileLayer.provider('Esri.WorldImagery');
+        const topo = L.tileLayer.provider('OpenTopoMap');
+        const cartoPositron = L.tileLayer.provider('CartoDB.Positron');
+        const cartoVoyager = L.tileLayer.provider('CartoDB.Voyager'); 
+        const cartoDark = L.tileLayer.provider('CartoDB.DarkMatter');
+        const stamenTerrain = L.tileLayer.provider('Stamen.Terrain');
+        const stamenTonerLite = L.tileLayer.provider('Stamen.TonerLite');
+        const stamenWatercolor = L.tileLayer.provider('Stamen.Watercolor');
+        const openPtMap = L.tileLayer.provider('OpenPtMap');
+        const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        });
+        const osmDE = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        });
+        const osmFR = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 20
+        });
+        const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors, Tiles courtesy of Humanitarian OpenStreetMap Team',
+            maxZoom: 17
+        });
+        
+        const baseMaps = { 
+            "🗺️ Street": street,
+            "🛰️ Satellite": satellite, 
+            "🗻 Topographic": topo,
+            "✨ Clean Light": cartoPositron,
+            "🧭 Voyager": cartoVoyager,
+            "🌙 Dark Theme": cartoDark,
+            "🏔️ Terrain": stamenTerrain,
+            "📐 Clean Lines": stamenTonerLite,
+            "🎨 Watercolor": stamenWatercolor,
+            "🚌 Public Transport": openPtMap,
+            "📍 OSM Standard": osmStandard,
+            "🇩🇪 OSM German": osmDE,
+            "🇫🇷 OSM France": osmFR,
+            "🆘 OSM Humanitarian": osmHOT
+        };
 
-        // --- Initialize the overlay layers (ONLY ONCE) ---
+        // --- Initialize overlay layers ---
         hikingTrails = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
+            attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>',
+            opacity: 0.7
         });
         
         cyclingTrails = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
+            attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>',
+            opacity: 0.7
         });
 
-        // Keep only ONE railway layer to simplify
         railwayStandard = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
             attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
             minZoom: 2,
@@ -538,36 +578,38 @@ document.addEventListener('DOMContentLoaded', () => {
             opacity: 0.7
         });
 
-        // REMOVE THE DUPLICATE DECLARATIONS - these were causing conflicts
-        // DELETE: railwayMaxspeed = L.tileLayer(...);
-        // DELETE: railwayElectrification = L.tileLayer(...);
-
-        // Initialize layer groups for POI data (NOT tile layers)
+        // Initialize POI layer groups
         campingLayer = L.layerGroup();
         breweryLayer = L.layerGroup();
         familyLayer = L.layerGroup();
 
-        // --- Updated Overlay Maps (simplified) ---
+        // --- ALL OVERLAYS IN ONE ORGANIZED MENU ---
         const overlayMaps = {
-            "Hiking Trails": hikingTrails,
-            "Cycling Trails": cyclingTrails,
-            "Railways": railwayStandard,
-            "Camping Sites": campingLayer,
-            "Breweries": breweryLayer,
-            "Family-Friendly Sites": familyLayer
+            // Trails & Routes
+            "🥾 Hiking Trails": hikingTrails,
+            "🚲 Cycling Trails": cyclingTrails,
+            "🚆 Railways": railwayStandard,
+            
+            // Points of Interest  
+            "⛺ Camping Sites": campingLayer,
+            "🍺 Breweries": breweryLayer,
+            "👶 Family-Friendly Sites": familyLayer
         };
 
         // --- Initialize with satellite ---
         satellite.addTo(map);
 
-        // --- Locations and Layer Control ---
+        // --- Locations and Layer Control (this replaces all the individual toggles) ---
         locationsLayer = L.layerGroup().addTo(map);
-        L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(map);
+        L.control.layers(baseMaps, overlayMaps, { 
+            position: 'topright', 
+            collapsed: false  // Keep it open so users can easily see all options
+        }).addTo(map);
 
         loadDestinations();
         map.on('click', onMapClick);
 
-        // Load data when layers are added to map
+        // Load POI data when layers are added to map
         map.on('layeradd', (e) => {
             if (e.layer === breweryLayer) {
                 loadPOILayer('node[amenity=pub];node[amenity=bar];node[craft=brewery]', breweryLayer, '🍺');
@@ -1870,61 +1912,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         });
-
-        // Update the createLayerToggle function
-        const createLayerToggle = (layer, icon, title) => {
-            const toggle = L.control({position: 'bottomright'});
-            
-            toggle.onAdd = function(map) {
-                const div = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
-                div.innerHTML = `<a href="#" title="${title}" style="font-weight:bold;">${icon}</a>`;
-                
-                // Check if layer is already on the map and set initial state
-                if (map.hasLayer(layer)) {
-                    div.firstChild.classList.add('active');
-                }
-                
-                L.DomEvent.on(div.firstChild, 'click', function(e) {
-                    L.DomEvent.preventDefault(e);
-                    L.DomEvent.stopPropagation(e);
-                    
-                    if (map.hasLayer(layer)) {
-                        map.removeLayer(layer);
-                        this.classList.remove('active');
-                    } else {
-                        map.addLayer(layer);
-                        this.classList.add('active');
-                    }
-                });
-                
-                return div;
-            };
-            
-            return toggle;
-        };
-
-        // Add these CSS styles for the toggles
-        const style = document.createElement('style');
-        style.textContent = `
-            .leaflet-bottom .leaflet-control {
-                margin-bottom: 15px;
-            }
-            .leaflet-bar a.active {
-                background-color: #ddd;
-                border-color: #999;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Add the toggles with a bit of delay to ensure map is fully initialized
-        setTimeout(() => {
-            createLayerToggle(hikingTrails, '🥾', 'Toggle Hiking Trails').addTo(map);
-            createLayerToggle(cyclingTrails, '🚲', 'Toggle Cycling Trails').addTo(map);
-            createLayerToggle(railwayStandard, '🚆', 'Toggle Railways').addTo(map);
-            createLayerToggle(campingLayer, '⛺', 'Toggle Camping Sites').addTo(map);
-            createLayerToggle(breweryLayer, '🍺', 'Toggle Breweries').addTo(map);
-            createLayerToggle(familyLayer, '👶', 'Toggle Family-Friendly Sites').addTo(map);
-        }, 1000);
     }; // ADD THIS MISSING CLOSING BRACE
 
     const supportsR2Features = () => {
