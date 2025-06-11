@@ -1095,17 +1095,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const setupModalEventListeners = () => {
-
         document.body.addEventListener('click', async (e) => {
-
             const target = e.target;
 
-            if (target.matches('.modal-close') || target.id.endsWith('-cancel') || target.id === 'info-close' || target.id === 'admin-close' || target.id === 'close-profile') {
-
+            // FIX: Add the missing modal close handlers
+            if (target.matches('.modal-close') || 
+                target.id.endsWith('-cancel') || 
+                target.id === 'info-close' || 
+                target.id === 'admin-close' || 
+                target.id === 'close-profile' ||
+                target.id === 'login-cancel' ||
+                target.id === 'register-cancel' ||
+                target.id === 'add-loc-cancel' ||
+                target.id === 'profile-cancel' ||
+                target.id === 'review-cancel' ||
+                target.id === 'report-cancel' ||
+                target.id === 'media-cancel') {
                 modalManager.hide();
-
                 return;
-
             }
 
             if (target.id === 'login-submit') {
@@ -1780,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddyu.png';
+            logoImg.src = 'oddyseus2.png';
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
             
