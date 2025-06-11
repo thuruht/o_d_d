@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { authMiddleware, AuthVariables } from '../utils/auth';
 import { Env } from '../types';
-import { uuidv4 } from '../utils/uuid'; // Assuming you have this utility
+import { uuidv4 } from '../utils/uuid'; // This path should now resolve correctly
 
 // Define Zod schema for report submission
 const reportSubmissionSchema = z.object({
@@ -34,6 +34,7 @@ reports.post(
         }
 
         // Ensure at least one ID is provided (already handled by Zod refine, but good for clarity)
+        // This check is redundant due to Zod's .refine, but doesn't harm.
         if (!location_id && !media_id && !vote_id) {
             return c.json({ error: 'A location, media, or vote ID must be provided for the report.' }, 400);
         }
