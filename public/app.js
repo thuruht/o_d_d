@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .setView(HOME_VIEW.center, HOME_VIEW.zoom);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // --- Base Layers using Leaflet Providers (FIXED STAMEN PROVIDERS) ---
+        // --- Base Layers using Leaflet Providers (FIXED PROVIDERS) ---
         const street = L.tileLayer.provider('OpenStreetMap.Mapnik');
         const satellite = L.tileLayer.provider('Esri.WorldImagery');
         const topo = L.tileLayer.provider('OpenTopoMap');
@@ -539,7 +539,12 @@ document.addEventListener('DOMContentLoaded', () => {
             maxZoom: 16
         });
         
-        const openPtMap = L.tileLayer.provider('OpenPtMap');
+        // REPLACE OpenPtMap with working public transport layer
+        const publicTransport = L.tileLayer('https://tile.memomaps.de/tilegen/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://memomaps.de/">MeMoMaps</a>, © OpenStreetMap contributors',
+            maxZoom: 18
+        });
+        
         const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19
@@ -567,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "🏔️ Terrain": stamenTerrain,
             "📐 Clean Lines": stamenTonerLite,
             "🎨 Watercolor": stamenWatercolor,
-            "🚌 Public Transport": openPtMap,
+            "🚌 Public Transport": publicTransport, // Fixed provider
             "📍 OSM Standard": osmStandard,
             "🇩🇪 OSM German": osmDE,
             "🇫🇷 OSM France": osmFR,
@@ -613,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Initialize with satellite ---
         satellite.addTo(map);
 
-        // --- Locations and Layer Control (this replaces all the individual toggles) ---
+        // --- Locations and Layer Control ---
         locationsLayer = L.layerGroup().addTo(map);
         L.control.layers(baseMaps, overlayMaps, { 
             position: 'topright', 
