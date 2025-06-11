@@ -1982,6 +1982,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Add this function to load POI data from Overpass API
+    async function loadPOILayer(query, layerGroup, icon) {
+        const overpassUrl = 'https://overpass-api.de/api/interpreter';
+        const bbox = map.getBounds();
+        const south = bbox.getSouth();
+        const west = bbox.getWest();
+        const north = bbox.getNorth();
+        const east = bbox.getEast();
+        
+        const overpassQuery = `
+        [out:json][timeout:25];
+        (
+          ${query}(${south},${west},${north},${east});
+        );
+        out geom;
+    `;
+    
+        try {
+            const response = await fetch(overpassUrl, {
+                method: 'POST',
+                body: overpassQuery
+            });
+            const data = await response.json();
+        
+            layerGroup.clearLayers();
+        
+            data.elements.forEach(element => {
+                if (element.lat && element.lon) {
+                    const marker = L.marker([element.lat, element.lon], {
+                        icon: L.divIcon({
+                            html: icon,
+                            className: 'poi-icon',
+                            iconSize: [20, 20]
+                        })
+                    });
+                
+                    const name = element.tags.name || 'Unknown';
+                    marker.bindPopup(`<b>${name}</b>`);
+                    layerGroup.addLayer(marker);
+                }
+            });
+        } catch (error) {
+            console.error('Error loading POI data:', error);
+        }
+    }
+
+    // Then update your layer creation:
+    const breweryLayer = L.layerGroup();
+    const campingLayer = L.layerGroup();
+
+    // Load data when layers are added to map
+    map.on('layeradd', (e) => {
+        if (e.layer === breweryLayer) {
+            loadPOILayer('node[amenity=pub];node[amenity=bar];node[craft=brewery]', breweryLayer, '🍺');
+        } else if (e.layer === campingLayer) {
+            loadPOILayer('node[tourism=camp_site];node[tourism=caravan_site]', campingLayer, '⛺');
+        }
+    });
+
     const init = async () => {
 
         await checkLoginState();
