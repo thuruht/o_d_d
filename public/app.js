@@ -524,18 +524,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const cartoDark = L.tileLayer.provider('CartoDB.DarkMatter');
         
         // REPLACE STAMEN PROVIDERS WITH DIRECT TILE LAYERS
-        const stamenTerrain = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-            maxZoom: 18
+        const terrainMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)',
+            maxZoom: 17
         });
-        
-        const stamenTonerLite = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-            maxZoom: 18
-        });
-        
-        const stamenWatercolor = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg', {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+
+        const cleanLines = L.tileLayer.provider('CartoDB.Positron');
+
+        const artisticMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri, © OpenStreetMap contributors',
             maxZoom: 16
         });
         
@@ -569,10 +566,10 @@ document.addEventListener('DOMContentLoaded', () => {
             "✨ Clean Light": cartoPositron,
             "🧭 Voyager": cartoVoyager,
             "🌙 Dark Theme": cartoDark,
-            "🏔️ Terrain": stamenTerrain,
-            "📐 Clean Lines": stamenTonerLite,
-            "🎨 Watercolor": stamenWatercolor,
-            "🚌 Public Transport": publicTransport, // Fixed provider
+            "🏔️ Terrain": terrainMap,        // Fixed
+            "📐 Clean Lines": cleanLines,     // Fixed  
+            "🎨 Artistic": artisticMap,       // Fixed
+            "🚌 Public Transport": publicTransport,
             "📍 OSM Standard": osmStandard,
             "🇩🇪 OSM German": osmDE,
             "🇫🇷 OSM France": osmFR,
@@ -659,6 +656,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>New Point</strong><br>
 
                 Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}
+
+                <br><br>
+
 
                 <br><br>
 
@@ -1834,12 +1834,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const init = async () => {
-
         await checkLoginState();
-
-        createModals(); // Modals are created with t() and static content mostly
-
+        createModals();
         updateUIForLanguage();
+        setupAppEventListeners(); // ← ADD THIS LINE - it's missing!
         initMap();
     };
 
