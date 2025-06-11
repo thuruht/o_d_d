@@ -972,6 +972,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>This is the Overland Destinations Database, an open-source project for travelers to share great places.</p>
                 <p>We have included layers for hiking and cycling trails, railways, and camping sites to help you find the best routes and spots.</p>
                 <p>Please note that this project is in beta. We are still working on features like user profiles, reviews, and media uploads. Let us know how they're working!</p>
+                <div class="oddyseus"><img src="oddyu.png" alt="Oddyseus the Otter"></div>
                 <p>Entries by the "system" user are a.i. generated for beta testing only! Please help us by adding your own entries and sharing the site with other travelers. :)</p>
             </div>
             <div class="info-tab-content" id="info-tab-contribute">
@@ -1724,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddyu.png';
+            logoImg.src = 'oddysseus.png';
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
             

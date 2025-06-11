@@ -459,6 +459,17 @@ body {
   margin: 15px 0 10px;
 }
 
+.oddyseus {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.oddyseus img {
+  width: 80%;
+  height: auto
+  border-radius: 50%;
+  margin-right: 10px;
+}
 .info-tab-content p, .info-tab-content li {
   margin-bottom: 10px;
   line-height: 1.5;
