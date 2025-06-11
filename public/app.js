@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: '© OpenTopoMap' });
         const baseMaps = { "Street": street, "Satellite": satellite, "Topographic": topo };
 
-        // --- Initialize the overlay layers for use in both functions ---
+        // --- Initialize the overlay layers (ONLY ONCE) ---
         hikingTrails = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
         });
@@ -530,6 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
             attribution: '© <a href="https://waymarkedtrails.org">Waymarked Trails</a>'
         });
 
+        // Keep only ONE railway layer to simplify
         railwayStandard = L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', {
             attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
             minZoom: 2,
@@ -537,71 +538,45 @@ document.addEventListener('DOMContentLoaded', () => {
             opacity: 0.7
         });
 
-        railwayMaxspeed = L.tileLayer('https://{s}.tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png', {
-            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
-            minZoom: 2,
-            maxZoom: 19,
-            opacity: 0.7
-        });
+        // REMOVE THE DUPLICATE DECLARATIONS - these were causing conflicts
+        // DELETE: railwayMaxspeed = L.tileLayer(...);
+        // DELETE: railwayElectrification = L.tileLayer(...);
 
-        railwayElectrification = L.tileLayer('https://{s}.tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png', {
-            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | Style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
-            minZoom: 2,
-            maxZoom: 19,
-            opacity: 0.7
-        });
+        // Initialize layer groups for POI data (NOT tile layers)
+        campingLayer = L.layerGroup();
+        breweryLayer = L.layerGroup();
+        familyLayer = L.layerGroup();
 
-        campingLayer = L.tileLayer('https://opencampingmap.openstreetmap.de/tiles/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://opencampingmap.openstreetmap.de">OpenCampingMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            minZoom: 2,
-            maxZoom: 19,
-            opacity: 0.7,
-            crossOrigin: 'anonymous'
-        });
-
-        // Add a breweries layer
-        breweryLayer = L.tileLayer('https://brewmap.openstreetmap.de/tiles/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://brewmap.openstreetmap.de">BrewMap</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            minZoom: 2,
-            maxZoom: 19,
-            opacity: 0.7
-        });
-
-        // Add a family-friendly layer
-        familyLayer = L.tileLayer('https://babykarte.openstreetmap.de/tiles/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://babykarte.openstreetmap.de">Babykarte</a> | © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            minZoom: 2,
-            maxZoom: 19,
-            opacity: 0.7
-        });
-
-        // --- Updated Overlay Maps ---
+        // --- Updated Overlay Maps (simplified) ---
         const overlayMaps = {
             "Hiking Trails": hikingTrails,
             "Cycling Trails": cyclingTrails,
-            "Railways - Standard": railwayStandard,
-            "Railways - Max Speed": railwayMaxspeed, 
-            "Railways - Electrification": railwayElectrification,
+            "Railways": railwayStandard,
             "Camping Sites": campingLayer,
             "Breweries": breweryLayer,
             "Family-Friendly Sites": familyLayer
         };
 
-        // --- CHANGED: Initialize with satellite instead of street ---
+        // --- Initialize with satellite ---
         satellite.addTo(map);
-
-        // Add camping layer by default
-        campingLayer.addTo(map);
 
         // --- Locations and Layer Control ---
         locationsLayer = L.layerGroup().addTo(map);
-
-        // --- UPDATED: Add both baseMaps and the new overlayMaps to the layer control ---
         L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(map);
 
         loadDestinations();
-
         map.on('click', onMapClick);
+
+        // Load data when layers are added to map
+        map.on('layeradd', (e) => {
+            if (e.layer === breweryLayer) {
+                loadPOILayer('node[amenity=pub];node[amenity=bar];node[craft=brewery]', breweryLayer, '🍺');
+            } else if (e.layer === campingLayer) {
+                loadPOILayer('node[tourism=camp_site];node[tourism=caravan_site]', campingLayer, '⛺');
+            } else if (e.layer === familyLayer) {
+                loadPOILayer('node[tourism=attraction][family=yes];node[amenity=playground]', familyLayer, '👶');
+            }
+        });
     };
 
     const onMapClick = (e) => {
@@ -1992,22 +1967,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const east = bbox.getEast();
         
         const overpassQuery = `
-        [out:json][timeout:25];
-        (
-          ${query}(${south},${west},${north},${east});
-        );
-        out geom;
-    `;
-    
+            [out:json][timeout:25];
+            (
+              ${query}(${south},${west},${north},${east});
+            );
+            out geom;
+        `;
+        
         try {
             const response = await fetch(overpassUrl, {
                 method: 'POST',
                 body: overpassQuery
             });
             const data = await response.json();
-        
+            
             layerGroup.clearLayers();
-        
+            
             data.elements.forEach(element => {
                 if (element.lat && element.lon) {
                     const marker = L.marker([element.lat, element.lon], {
@@ -2017,9 +1992,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             iconSize: [20, 20]
                         })
                     });
-                
+                    
                     const name = element.tags.name || 'Unknown';
-                    marker.bindPopup(`<b>${name}</b>`);
+                    marker.bindPopup(`<b>${DOMPurify.sanitize(name)}</b>`);
                     layerGroup.addLayer(marker);
                 }
             });
@@ -2027,19 +2002,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error loading POI data:', error);
         }
     }
-
-    // Then update your layer creation:
-    const breweryLayer = L.layerGroup();
-    const campingLayer = L.layerGroup();
-
-    // Load data when layers are added to map
-    map.on('layeradd', (e) => {
-        if (e.layer === breweryLayer) {
-            loadPOILayer('node[amenity=pub];node[amenity=bar];node[craft=brewery]', breweryLayer, '🍺');
-        } else if (e.layer === campingLayer) {
-            loadPOILayer('node[tourism=camp_site];node[tourism=caravan_site]', campingLayer, '⛺');
-        }
-    });
 
     const init = async () => {
 
