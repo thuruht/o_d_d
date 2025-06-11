@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env, Submission, User, Location, Report } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { Env, User, Location, Submission } from '../types';
+import { uuidv4 } from '../utils/uuid';
 
 const admin = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
@@ -20,7 +20,7 @@ admin.get('/users', async (c) => {
     try {
         const users = await c.env.DB.prepare(
             'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
-        ).all<User>();
+        ).all();
         
         return c.json(users.results);
     } catch (error) {
@@ -30,28 +30,24 @@ admin.get('/users', async (c) => {
 });
 
 admin.put('/users/:id', async (c) => {
-    const { id } = c.req.param();
-    const { role, suspended } = await c.req.json<{ role?: 'user' | 'moderator' | 'admin', suspended?: boolean }>();
-
-    if (role === undefined && suspended === undefined) {
-        return c.json({ error: 'Either role or suspended status must be provided' }, 400);
+    const userId = c.req.param('id');
+    const { role } = await c.req.json<{ role: string }>();
+    
+    if (!['user', 'moderator', 'admin'].includes(role)) {
+        return c.json({ error: 'Invalid role' }, 400);
     }
-
-    let query = "UPDATE users SET ";
-    const params: (string|number)[] = [];
-    if (role) {
-        query += "role = ? ";
-        params.push(role);
+    
+    try {
+        const result = await c.env.DB.prepare(
+            'UPDATE users SET role = ? WHERE id = ?'
+        ).bind(role, userId).run();
+        
+        const success = result.changes > 0;
+        return success ? c.json({ message: 'User updated' }) : c.json({ error: 'Failed to update user' }, 500);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        return c.json({ error: 'Failed to update user' }, 500);
     }
-    if (suspended !== undefined) {
-        query += (params.length > 0 ? ", " : "") + "suspended = ? ";
-        params.push(suspended ? 1 : 0);
-    }
-    query += "WHERE id = ?";
-    params.push(id);
-
-    const { success } = await c.env.DB.prepare(query).bind(...params).run();
-    return success ? c.json({ message: 'User updated' }) : c.json({ error: 'Failed to update user' }, 500);
 });
 
 admin.get('/submissions', async (c) => {
@@ -73,7 +69,7 @@ admin.get('/submissions', async (c) => {
 
 admin.post('/submissions/:id/approve', async (c) => {
     const { id } = c.req.param();
-    const adminUser = c.get('user');
+    const adminUser = c.get('currentUser');
     
     const submission = await c.env.DB.prepare("SELECT * FROM submissions WHERE id = ? AND status = 'pending'").bind(id).first<Submission>();
     if (!submission) {
@@ -87,7 +83,7 @@ admin.post('/submissions/:id/approve', async (c) => {
         await c.env.DB.batch([
             c.env.DB.prepare(`INSERT INTO locations (id, name, description, latitude, longitude, type, properties, created_by, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')`)
-                .bind(locationId, data.name, data.description, data.latitude, data.longitude, data.type, JSON.stringify(data.properties || {}), submission.user_id),
+                .bind(locationId, data.name, data.description, data.latitude, data.longitude, data.type, JSON.stringify(data.properties || {}), submission.submitted_by),
             c.env.DB.prepare("UPDATE submissions SET status = 'approved', admin_notes = ? WHERE id = ?")
                 .bind(`Approved by ${adminUser.id}`, id)
         ]);
@@ -126,7 +122,7 @@ admin.post('/submissions/:id/approve', async (c) => {
 admin.post('/submissions/:id/reject', async (c) => {
     const { id } = c.req.param();
     const { reason } = await c.req.json<{reason: string}>();
-    const adminUser = c.get('user');
+    const adminUser = c.get('currentUser');
     
     const result = await c.env.DB.prepare("UPDATE submissions SET status = 'rejected', admin_notes = ? WHERE id = ? AND status = 'pending'")
         .bind(`Rejected by ${adminUser.id}: ${reason}`, id).run();
@@ -154,18 +150,14 @@ admin.get('/reports', async (c) => {
 
 admin.post('/reports/:id/resolve', async (c) => {
     const { id } = c.req.param();
-    const { action } = await c.req.json<{action: 'resolved' | 'dismissed'}>();
-    const adminUser = c.get('user');
-
-    if (!['resolved', 'dismissed'].includes(action)) {
-        return c.json({ error: 'Invalid action'}, 400);
-    }
+    const { action } = await c.req.json<{action: string}>();
+    const adminUser = c.get('currentUser');
     
-    const result = await c.env.DB.prepare("UPDATE reports SET status = ?, resolved_by = ?, resolved_at = ? WHERE id = ? AND status = 'open'")
-        .bind(action, adminUser.id, new Date().toISOString(), id).run();
+    const result = await c.env.DB.prepare("UPDATE reports SET status = 'resolved', admin_notes = ? WHERE id = ? AND status = 'open'")
+        .bind(`Resolved by ${adminUser.id}: ${action}`, id).run();
 
     if (result.changes === 0) return c.json({ error: 'Report not found or already processed'}, 404);
-    return c.json({ message: `Report has been ${action}`});
+    return c.json({ message: 'Report resolved' });
 });
 
 export default admin;

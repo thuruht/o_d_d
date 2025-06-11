@@ -1,25 +1,14 @@
-import { Hono } from 'hono';
-import { Env } from '../types';
-import { authRouter } from './auth';
-import { locationsRouter } from './locations';
-import { submissionsRouter } from './submissions';
-import { votingRouter } from './voting';
-import { adminRouter } from './admin';
-import { mediaRouter } from './media';
-import { reportsRouter } from './reports';
-import { favoritesRouter } from './favorites';
-import { usersRouter } from './users';
+// If this file exists and exports anything, it might conflict
+// Either remove this file entirely, or make sure it doesn't export anything that conflicts
+// with individual API modules
 
-const apiRouter = new Hono();
-
-apiRouter.route('/auth', authRouter);
-apiRouter.route('/users', usersRouter);
-apiRouter.route('/locations', locationsRouter);
-apiRouter.route('/submissions', submissionsRouter);
-apiRouter.route('/votes', votingRouter);
-apiRouter.route('/admin', adminRouter);
-apiRouter.route('/media', mediaRouter);
-apiRouter.route('/reports', reportsRouter);
-apiRouter.route('/favorites', favoritesRouter);
-
-export default apiRouter;
+// If you want to keep this file, it should only re-export the routers:
+export { default as authRouter } from './auth';
+export { default as locationsRouter } from './locations';
+export { default as mediaRouter } from './media';
+export { default as usersRouter } from './users';
+export { default as adminRouter } from './admin';
+export { default as reportsRouter } from './reports';
+export { default as submissionsRouter } from './submissions';
+export { default as votingRouter } from './voting';
+export { default as favoritesRouter } from './favorites';
