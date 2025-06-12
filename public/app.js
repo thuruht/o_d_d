@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddyseus2.png';
+            logoImg.src = 'oddysseus_maximus.png';
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
             navBrandContainer.prepend(logoImg);
