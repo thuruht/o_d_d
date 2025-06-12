@@ -214,26 +214,38 @@ body {
     position: absolute;
     top: 10px;
     left: 10px;
-    z-index: 401;
+    z-index: 401; /* Above Leaflet's default pane z-index of 400 */
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 5px;
 }
-.map-controls-container button {
-    width: 34px;
-    height: 34px;
-    font-size: 1.5rem;
-    line-height: 1.5rem;
-    background-color: white;
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius);
+
+.map-control-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 8px;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
-    padding: 0;
+    font-size: 1.5rem; /* Increased size for better visibility */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.map-controls-container button:hover {
-    background-color: #f4f4f4;
+
+.map-control-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
 }
+
+.map-control-btn:active {
+    transform: translateY(0);
+}
+
 .leaflet-control-layers {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;

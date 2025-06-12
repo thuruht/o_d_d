@@ -61,8 +61,11 @@
     <main id="main-content">
         <div id="map-container">
              <div class="map-controls-container">
-                <button id="map-home-btn" aria-label="Reset map view">⌂</button>
-                <button id="map-location-btn" aria-label="Go to my location">◎</button>
+                <div class="map-controls">
+                    <button id="map-home-btn" class="map-control-btn" title="Go to Home View" aria-label="Reset map view">🏠</button>
+                    <button id="map-location-btn" class="map-control-btn" title="Go to Current Location" aria-label="Go to my location">📍</button>
+                    <button id="map-set-home-btn" class="map-control-btn" title="Set Current View as Home" aria-label="Set current view as home">📌</button>
+                </div>
             </div>
         </div>
     </main>
