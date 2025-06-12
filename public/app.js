@@ -739,18 +739,55 @@ document.addEventListener('DOMContentLoaded', () => {
         // Search functionality
         const searchInput = document.getElementById('search-input');
         const searchButton = document.getElementById('search-button');
-        const performSearch = () => {
-            const searchTerm = searchInput.value.trim();
-            favoritesViewActive = false; 
-            // Basic check: if it has numbers and spaces, it's likely an address
-            if (/\d/.test(searchTerm) && / /.test(searchTerm)) {
-                geocodeAndPan(searchTerm);
-            } else {
-                loadDestinations(searchTerm);
+
+        if (searchInput && searchButton) {
+            // Define search function
+            const performSearch = () => {
+                const searchTerm = searchInput.value.trim();
+                if (!searchTerm) return; // Don't search empty strings
+                
+                favoritesViewActive = false;
+                
+                // Show loading state
+                searchButton.disabled = true;
+                searchButton.classList.add('loading');
+                
+                // Basic check: if it has numbers and spaces, it's likely an address
+                if (/\d/.test(searchTerm) && / /.test(searchTerm)) {
+                    geocodeAndPan(searchTerm)
+                        .finally(() => {
+                            searchButton.disabled = false;
+                            searchButton.classList.remove('loading');
+                        });
+                } else {
+                    loadDestinations(searchTerm)
+                        .finally(() => {
+                            searchButton.disabled = false;
+                            searchButton.classList.remove('loading');
+                        });
+                }
+            };
+            
+            // Attach event listeners
+            searchButton.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent any form submission
+                performSearch();
+            });
+            
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent any form submission
+                    performSearch();
+                }
+            });
+            
+            // Remove any existing search-form listeners
+            const oldForm = document.getElementById('search-form');
+            if (oldForm) {
+                const newForm = oldForm.cloneNode(true);
+                oldForm.parentNode.replaceChild(newForm, oldForm);
             }
-        };
-        searchButton.addEventListener('click', performSearch);
-        searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+        }
 
         // Map controls
         safeAddEventListener('map-home-btn', 'click', () => goToHome());

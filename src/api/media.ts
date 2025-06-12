@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { authMiddleware, AuthVariables } from '../utils/auth';
 import { Env } from '../types';
 import { nanoid } from 'nanoid';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 const uploadUrlSchema = z.object({
     filename: z.string().min(1).max(255),
@@ -118,6 +120,47 @@ media.post('/confirm-upload', async (c) => {
     } catch (error) {
         console.error('Error confirming upload:', error);
         return c.json({ error: 'Failed to confirm upload' }, 500);
+    }
+});
+
+// Presigned URL endpoint for direct S3 upload
+media.post('/presign-url', async (c) => {
+    const user = c.get('currentUser');
+    const { filename, locationId } = await c.req.json();
+    
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    try {
+        const mediaId = crypto.randomUUID();
+        const key = `locations/${locationId}/${user.id}/${nanoid()}-${filename}`;
+        const contentType = 'image/jpeg'; // or derive from filename extension
+        
+        // Get presigned URL from S3
+        const signedUrl = await getSignedUrl(
+            s3Client, 
+            new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: key,
+                ContentType: contentType,
+            }),
+            { method: 'PUT' }  // Add this parameter
+        );
+        
+        // Store pending media record
+        await c.env.DB.prepare(
+            'INSERT INTO media (id, location_id, user_id, file_key, original_filename, status) VALUES (?, ?, ?, ?, ?, ?)'
+        ).bind(mediaId, locationId, user.id, key, filename, 'pending').run();
+        
+        return c.json({ 
+            mediaId,
+            url: signedUrl,
+            message: 'Media record created, URL generated for direct upload'
+        });
+    } catch (error) {
+        console.error('Error generating presigned URL:', error);
+        return c.json({ error: 'Failed to generate presigned URL' }, 500);
     }
 });
 

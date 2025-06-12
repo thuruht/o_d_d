@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { authMiddleware, AuthVariables } from '../utils/auth';
 import { Env } from '../types';
 import { nanoid } from 'nanoid';
+import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { s3Client } from '../utils/s3';
 
 const avatarUploadSchema = z.object({
     filename: z.string().min(1).max(255),
@@ -136,6 +139,40 @@ users.post('/avatar-confirm', async (c) => {
     } catch (error) {
         console.error('Error confirming avatar upload:', error);
         return c.json({ error: 'Failed to update avatar' }, 500);
+    }
+});
+
+// Presigned URL for avatar upload
+users.get('/avatar-presign-url', async (c) => {
+    const user = c.get('currentUser');
+    
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
+    
+    try {
+        // Generate unique key for the avatar
+        const key = `avatars/${user.id}/${nanoid()}.jpg`;
+        
+        // Create a presigned URL for the avatar upload
+        const signedUrl = await getSignedUrl(
+            s3Client,
+            new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: key,
+                ContentType: 'image/jpeg',
+            }),
+            { method: 'PUT' }  // Add this parameter
+        );
+        
+        return c.json({ 
+            signedUrl,
+            key,
+            message: 'Use this URL to upload the avatar'
+        });
+    } catch (error) {
+        console.error('Error generating presigned URL:', error);
+        return c.json({ error: 'Failed to generate presigned URL' }, 500);
     }
 });
 

@@ -1101,7 +1101,6 @@ to {
     transform: rotate(360deg);
 }
 
-@keyframes spin {}
 
 animation: spin 1s linear infinite;
 margin-top: -8px;
