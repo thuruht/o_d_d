@@ -6,6 +6,7 @@ import { Env } from '../types';
 import { nanoid } from 'nanoid';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { s3Client } from '../utils/s3';
 
 const uploadUrlSchema = z.object({
     filename: z.string().min(1).max(255),

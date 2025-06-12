@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authMiddleware, AuthVariables } from '../utils/auth';
 import { Env } from '../types';
 import { nanoid } from 'nanoid';
-import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client } from '../utils/s3';
 
