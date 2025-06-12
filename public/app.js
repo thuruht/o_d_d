@@ -112,7 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
             'border-crossing': 'Customs and Immigration', 'checkpoint': 'Checkpoint', 'warning': 'Warning',
             'friendly-outpost': 'Friendly Outpost', 'provisions-stand': 'Provisions Stand', 'seasonal-event': 'Seasonal Event',
             'good-signal-spot': 'Good Signal Spot', 'recycling-waste': 'Recycling / Waste', 'consulate-embassy': 'Consulate / Embassy',
-            'financial': 'Financial', 'overnight-prohibited': 'Overnight Prohibited', 'other': 'Other'
+            'financial': 'Financial', 'overnight-prohibited': 'Overnight Prohibited', 'other': 'Other',
+            'avatar_upload_failed': 'Avatar upload failed.',
+            'please_select_files': 'Please select files to upload',
+            'uploaded_for_review': 'uploaded for review.',
+            'could_not_find_location': 'Could not find a location for',
+            'address_lookup_failed': 'Address lookup failed.',
         },
         es: {
             login: 'Iniciar Sesión', register: 'Registrarse', add_destination: 'Añadir Destino', admin: 'Admin', logout: 'Cerrar Sesión',
@@ -144,11 +149,11 @@ document.addEventListener('DOMContentLoaded', () => {
             'friendly-outpost': 'Puesto Amigo', 'provisions-stand': 'Puesto de Provisiones', 'seasonal-event': 'Evento Estacional',
             'good-signal-spot': 'Lugar con Buena Señal', 'recycling-waste': 'Reciclaje / Basura', 'consulate-embassy': 'Consulado / Embajada',
             'financial': 'Financiero', 'overnight-prohibited': 'Pernoctar Prohibido', 'other': 'Otro',
-            // --- CORRECTED AMENITY KEYS ---
-            'toilets': 'Baños', 'showers': 'Duchas', 'water': 'Fuente de Agua', 'power': 'Electricidad', 'wifi': 'WiFi', 'cellular': 'Señal Celular', 'pet_friendly': 'Apto para Mascotas', 'tent_friendly': 'Apto para Tiendas', 'opens_24_7': 'Abierto 24/7',
-            'none': 'Ninguno', 'flush': 'Con Cisterna', 'vault': 'De Bóveda', 'pit': 'De Foso', 'portable': 'Portátil', 'hot': 'Caliente', 'cold': 'Fría', 'paid': 'De Pago',
-            'tap-potable': 'Grifo Potable', 'tap-non-potable': 'Grifo No Potable', 'fountain': 'Fuente', 'natural-source': 'Fuente Natural',
-            '110v': '110V', '220v': '220V', 'usb': 'USB', 'yes': 'Sí', '1g/2g': '1G/2G', '3g': '3G', '4g/lte': '4G/LTE', '5g': '5G'
+            'avatar_upload_failed': 'Error al subir el avatar.',
+            'please_select_files': 'Por favor selecciona archivos para subir',
+            'uploaded_for_review': 'subido para revisión.',
+            'could_not_find_location': 'No se pudo encontrar una ubicación para',
+            'address_lookup_failed': 'Falló la búsqueda de dirección.',
         },
         fr: {
             login: 'Connexion', register: 'S\'inscrire', add_destination: 'Ajouter Destin', admin: 'Admin', logout: 'Déconnexion',
@@ -180,10 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
             'friendly-outpost': 'Avant-poste Amical', 'provisions-stand': 'Stand de Provisions', 'seasonal-event': 'Événement Saisonnier',
             'good-signal-spot': 'Bon Signal', 'recycling-waste': 'Recyclage / Déchets', 'consulate-embassy': 'Consulat / Ambassade',
             'financial': 'Financier', 'overnight-prohibited': 'Nuitée Interdite', 'other': 'Autre',
-            'toilets': 'Toilettes', 'showers': 'Douches', 'water': 'Source d\'Eau', 'power': 'Électricité', 'wifi': 'WiFi', 'cellular': 'Signal Cellulaire', 'pet_friendly': 'Animaux Admis', 'tent_friendly': 'Tentes Admises', 'opens_24_7': 'Ouvert 24/7',
-            'none': 'Aucun', 'flush': 'À Chasse d\'Eau', 'vault': 'Sèche', 'pit': 'À Fosse', 'portable': 'Portable', 'hot': 'Chaude', 'cold': 'Froide', 'paid': 'Payant',
-            'tap-potable': 'Robinet Potable', 'tap-non-potable': 'Robinet Non Potable', 'fountain': 'Fontaine', 'natural-source': 'Source Naturelle',
-            '110v': '110V', '220v': '220V', 'usb': 'USB', 'yes': 'Oui', '1g/2g': '1G/2G', '3g': '3G', '4g/lte': '4G/LTE', '5g': '5G'
+            'avatar_upload_failed': 'Échec du téléchargement de l\'avatar.',
+            'please_select_files': 'Veuillez sélectionner des fichiers à télécharger',
+            'uploaded_for_review': 'téléchargé pour examen.',
+            'could_not_find_location': 'Impossible de trouver un emplacement pour',
+            'address_lookup_failed': 'Échec de la recherche d\'adresse.',
         }
     };
 
@@ -587,7 +593,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>This is the Overland Destinations Database, an open-source project for travelers to share great places.</p>
                 <p>We have included layers for hiking and cycling trails, railways, and camping sites to help you find the best routes and spots.</p>
                 <p>Please note that this project is in beta. We are still working on features like user profiles, reviews, and media uploads. Let us know how they're working!</p>
-                <div class="oddyseus"><img src="oddyu.png" alt="Oddyseus the Otter"></div>
+                <div class="info-modal-mascot">
+                    <img src="oddyu.png" alt="Oddyseus the Otter" class="mascot-image" onerror="this.style.display='none'">
+                </div>
                 <p>Entries by the "system" user are a.i. generated for beta testing only! Please help us by adding your own entries and sharing the site with other travelers. :)</p>
             </div>
             <div class="info-tab-content" id="info-tab-contribute">
@@ -600,19 +608,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <li><strong>Unique and useful spots.</strong> We especially love those hard-to-find places—a remote water source, a great wild camping spot, or a shop with rare supplies.</li>
                     <li><strong>Spontaneous joys!</strong> Feel free to add that <strong>Scenic Viewpoint</strong> you stopped at for five minutes or that perfect <strong>Day Use / Picnic Area</strong>. Not every great spot is an overnight stay.</li>
                 </ul>
-                <h3>Our Core Principle: Be a Good Traveler</h3>
-                <p>The most important rule is to be respectful. That means respecting the <strong>environment</strong> (leave no trace!), <strong>local communities</strong> (be a good guest!), and <strong>each other</strong> (be kind!).</p>
-                <p>Please don't add any places that are illegal, on private property without permission, or would encourage others to do harm.</p>
-                <p>That's it! Thank you for sharing your journey with us.</p>
-            </div>
+                <h3> Travel mindfully: </h3>
+                <p>Make your mark <em>on the map</em>, not on the land, and please, follow the community philosophy and conduct guidelines when you are here.</p>
             <div class="info-tab-content" id="info-tab-conduct">
                 <h1>O.D.D.Map Community Philosophy</h1>
                 <p>This project is built by and for a global community of travelers. We have three guiding principles that we ask everyone to share.</p>
                 <h3>1. Be Kind</h3>
-                <p>This is the most important rule. Treat fellow users, contributors, and the people you meet on your travels with respect, patience, and empathy. We are all here to share knowledge and help each other explore the world. There is a zero-tolerance policy for harassment, hate speech, or personal attacks.</p>
+                <p>This is first for a reason. Treat fellow users, contributors, and the people you meet on your travels with respect, patience, and empathy. We are all here to share knowledge and help each other explore the world. There is a zero-tolerance policy for harassment, hate speech, or personal attacks.</p>
                 <h3>2. Respect the Place</h3>
-                <p>Every point on this map is someone's home. Be considerate of local communities, their customs, and their way of life. Ask for permission before camping on private land, support local businesses, and always be a good ambassador for the overlanding community. The data we collect should never facilitate disrespect or violating the wishes of local people.</p>
-                <h3>3. Leave It Better</h3>
+                <p>Every point on this map is someone's home. Be considerate of local communities, their customs, and their way of life. Ask for permission before camping, especially if the land appears to be actively used by locals. Leave places better than you found them.</p>
+                <h3>Consider the Common Good</h3>
                 <p>We have a shared responsibility to protect the natural environments we travel through. This means packing out all waste, respecting wildlife, and only using designated fire pits when and where it's safe. Do not add places to this map that would encourage environmental damage.</p>
                 <p>This is a community-moderated project. We trust you to contribute responsibly and help us by reporting any content that does not align with these principles. Thank you for being a positive part of our community.</p>
             </div>
@@ -695,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const { signedUrl, avatar_url: newUrl } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
                         await fetch(signedUrl, { method: 'PUT', body: avatarFile });
                         avatar_url = newUrl;
-                    } catch (error) { showToast(t('Avatar upload failed.'), 'error'); return; }
+                    } catch (error) { showToast(t('avatar_upload_failed'), 'error'); return; }
                 }
                 const profileData = { bio: document.getElementById('profile-bio').value, website: document.getElementById('profile-website').value, contact: document.getElementById('profile-contact').value, avatar_url };
                 try { await apiRequest('/users/me', 'PUT', profileData); await checkLoginState(); modalManager.hide(); showToast(t('profile_updated'), 'success'); } catch (error) { console.error('Profile update failed', error); }
@@ -709,13 +714,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (target.id === 'media-submit') {
                 const files = document.getElementById('media-files').files;
                 const locationId = document.getElementById('media-location-id').value;
-                if (files.length === 0) return showToast(t('Please select files to upload'), 'error');
+                if (files.length === 0) return showToast(t('please_select_files'), 'error');
 
                 for (const file of files) {
                     try {
                         const { signedUrl } = await apiRequest('/media/upload-url', 'POST', { filename: file.name, contentType: file.type, locationId: locationId });
                         await fetch(signedUrl, { method: 'PUT', body: file });
-                        showToast(`${DOMPurify.sanitize(file.name)} ${t('uploaded for review.')}`, 'success');
+                        showToast(`${DOMPurify.sanitize(file.name)} ${t('uploaded_for_review')}`, 'success');
                     } catch (error) {
                         console.error(`Upload failed for ${file.name}`, error);
                         showToast(`Failed to upload ${DOMPurify.sanitize(file.name)}`, 'error');
@@ -800,8 +805,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // This function is used to validate email format
     function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+    // This function is used to validate password length
     function validatePassword(password) { return password.length >= 8; }
+    // This function is used to validate username length
     function validateName(name) { return name.length >= 2 && name.length <= 50; }
 
     const geocodeAndPan = async (address) => {
@@ -814,11 +822,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { lat, lon } = data[0];
                 map.flyTo([parseFloat(lat), parseFloat(lon)], 13);
             } else {
-                showToast(`${t('Could not find a location for')} "${DOMPurify.sanitize(address)}"`, 'info');
+                showToast(`${t('could_not_find_location')} "${DOMPurify.sanitize(address)}"`, 'info');
             }
         } catch (error) {
             console.error('Geocoding error:', error);
-            showToast(t('Address lookup failed.'), 'error');
+            showToast(t('address_lookup_failed'), 'error');
         }
     };
 
@@ -955,24 +963,54 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const setupAppEventListeners = () => {
+        // Add navbar logo with proper error handling
         const navBrandContainer = document.querySelector('.nav-brand-container');
         if (navBrandContainer) {
+            // Remove existing logo if any to prevent duplicates
+            const existingLogo = navBrandContainer.querySelector('#nav-logo');
+            if (existingLogo) existingLogo.remove();
+            
             const logoImg = document.createElement('img');
-            logoImg.src = 'oddysseus_maximus.png';
+            logoImg.src = 'oddysseus_maximus.png'; // Navbar version
             logoImg.alt = 'O.D.D. Map Logo';
             logoImg.id = 'nav-logo';
+            logoImg.className = 'navbar-logo'; // Add specific class for navbar styling
+            
+            // Add error handler for missing image
+            logoImg.onerror = function() {
+                console.warn('Navbar logo file not found:', this.src);
+                this.style.display = 'none';
+            };
+            
             navBrandContainer.prepend(logoImg);
         }
 
-        document.getElementById('language-select').addEventListener('change', (e) => {
+        // Helper function to safely add event listeners
+        const safeAddEventListener = (id, event, handler) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.warn(`Element with ID '${id}' not found. Cannot attach event listener.`);
+            }
+        };
+
+        safeAddEventListener('language-select', 'change', (e) => {
             currentLanguage = e.target.value;
             updateUIForLanguage();
         });
 
-        document.getElementById('nav-login').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('login'); });
-        document.getElementById('nav-register').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('register'); });
+        safeAddEventListener('nav-login', 'click', (e) => { 
+            e.preventDefault(); 
+            modalManager.show('login'); 
+        });
+        
+        safeAddEventListener('nav-register', 'click', (e) => { 
+            e.preventDefault(); 
+            modalManager.show('register'); 
+        });
 
-        document.getElementById('nav-logout').addEventListener('click', (e) => {
+        safeAddEventListener('nav-logout', 'click', (e) => {
             e.preventDefault();
             apiRequest('/auth/logout', 'POST')
                 .then(() => {
@@ -986,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
 
-        document.getElementById('nav-add-destination').addEventListener('click', (e) => {
+        safeAddEventListener('nav-add-destination', 'click', (e) => {
             e.preventDefault();
             if (!currentUser) return showToast(t('error_please_login'), 'error');
             modalManager.show('add-destination', (modal) => {
@@ -996,16 +1034,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.getElementById('nav-my-favorites').addEventListener('click', (e) => {
+        safeAddEventListener('nav-my-favorites', 'click', (e) => {
             e.preventDefault();
             if (!currentUser) return showToast(t('error_please_login'), 'error');
             favoritesViewActive = true;
             loadDestinations();
         });
 
-        document.getElementById('nav-info-btn').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('info'); });
-        document.getElementById('nav-filters-btn').addEventListener('click', (e) => { e.preventDefault(); modalManager.show('filters'); });
-        document.getElementById('nav-my-profile').addEventListener('click', (e) => {
+        safeAddEventListener('nav-info-btn', 'click', (e) => { 
+            e.preventDefault(); 
+            modalManager.show('info'); 
+        });
+        
+        safeAddEventListener('nav-filters-btn', 'click', (e) => { 
+            e.preventDefault(); 
+            modalManager.show('filters'); 
+        });
+
+        safeAddEventListener('nav-my-profile', 'click', (e) => {
             e.preventDefault();
             if (!currentUser) return showToast(t('error_please_login'), 'error');
             modalManager.show('edit-profile', (modal) => {
@@ -1015,15 +1061,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.getElementById('nav-admin').addEventListener('click', (e) => { e.preventDefault(); showAdminPanel(); });
-
-        document.getElementById('search-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const searchTerm = document.getElementById('search-input').value.trim();
-            favoritesViewActive = false; // Reset favorites view on new search
-            loadDestinations(searchTerm);
+        safeAddEventListener('nav-admin', 'click', (e) => { 
+            e.preventDefault(); 
+            showAdminPanel(); 
         });
 
+        safeAddEventListener('search-form', 'submit', (e) => {
+            e.preventDefault();
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                const searchTerm = searchInput.value.trim();
+                favoritesViewActive = false; // Reset favorites view on new search
+                loadDestinations(searchTerm);
+            }
+        });
     };
 
     async function loadPOILayer(query, layerGroup, icon) {
@@ -1062,10 +1113,10 @@ document.addEventListener('DOMContentLoaded', () => {
         await checkLoginState();
         createModals();
         updateUIForLanguage();
-        setupAppEventListeners(); // This call is essential
+        setupAppEventListeners(); // This line was missing!
         setupModalEventListeners();
         initMap();
     };
 
-    init();
+    init(); // Make sure this is at the very end
 });

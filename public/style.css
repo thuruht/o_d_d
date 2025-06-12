@@ -510,3 +510,30 @@ body {
     object-fit: cover;
     flex-shrink: 0;
 }
+
+/* Navbar logo styling */
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Info modal mascot styling */
+.info-modal-mascot {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.mascot-image {
+    max-width: 150px;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Responsive navbar logo */
+@media (max-width: 768px) {
+    .navbar-logo {
+        height: 32px;
+    }
+}
