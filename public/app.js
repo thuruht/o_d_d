@@ -311,16 +311,40 @@ document.addEventListener('DOMContentLoaded', () => {
      * Initializes the Leaflet map, layers, and controls.
      */
     const initMap = () => {
-        map = L.map('map-container', { zoomControl: false, attributionControl: false })
-            .setView(HOME_VIEW.center, HOME_VIEW.zoom);
-        L.control.zoom({ position: 'topright' }).addTo(map);
+        map = L.map('map-container', { 
+            zoomControl: false, 
+            attributionControl: false,
+            tap: true, // Enable tap for touch devices
+            tapTolerance: 15 // More forgiving tap detection
+        }).setView(HOME_VIEW.center, HOME_VIEW.zoom);
+
+        // Detect if device is touch-enabled
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        if (isTouchDevice) {
+            // Mobile-friendly settings
+            L.control.zoom({ 
+                position: 'topright', 
+                zoomInTitle: 'Zoom in (+)', 
+                zoomOutTitle: 'Zoom out (-)',
+                zoomInText: '<span style="font-size:1.2em">+</span>',
+                zoomOutText: '<span style="font-size:1.2em">−</span>'
+            }).addTo(map);
+            
+            // Make popups appear higher above markers on touch devices
+            map._popup = map._popup || {};
+            map._popup.options = map._popup.options || {};
+            map._popup.options.autoPanPaddingTopLeft = L.point(10, 100);
+        } else {
+            L.control.zoom({ position: 'topright' }).addTo(map);
+        }
 
         const baseMaps = {
+            "🌙 Dark Theme": L.tileLayer.provider('CartoDB.DarkMatter'),
             "🗺️ Street": L.tileLayer.provider('OpenStreetMap.Mapnik'),
             "🛰️ Satellite": L.tileLayer.provider('Esri.WorldImagery'),
             "🗻 Topographic": L.tileLayer.provider('OpenTopoMap'),
             "✨ Clean Light": L.tileLayer.provider('CartoDB.Positron'),
-            "🌙 Dark Theme": L.tileLayer.provider('CartoDB.DarkMatter'),
         };
 
         const overlayMaps = {
@@ -329,8 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
             "🚆 Railways": L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png', { attribution: '© OpenRailwayMap', opacity: 0.7 })
         };
         
-        // Set Satellite as the default base layer
-        baseMaps["🛰️ Satellite"].addTo(map);
+        // Set Dark Theme as the default base layer
+        baseMaps["🌙 Dark Theme"].addTo(map);
 
         locationsLayer = L.layerGroup().addTo(map);
         L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(map);
@@ -808,15 +832,71 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const goToCurrentLocation = () => {
-        if (!navigator.geolocation) return showToast('Geolocation is not supported.', 'error');
-        
+        if (!navigator.geolocation) {
+            showToast('Geolocation is not supported by this browser.', 'error');
+            return;
+        }
+
+        const locationBtn = document.getElementById('map-location-btn');
+        if (locationBtn) {
+            locationBtn.classList.add('loading');
+            locationBtn.style.cursor = 'wait';
+        }
+
         showToast('Getting your location...', 'info');
+        
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                map.flyTo([position.coords.latitude, position.coords.longitude], 15);
+                const { latitude, longitude } = position.coords;
+                map.flyTo([latitude, longitude], 15);
+                
+                // Add a temporary marker for current location
+                const currentLocationMarker = L.marker([latitude, longitude], {
+                    icon: L.divIcon({
+                        html: `<div class="current-location-marker">📍</div>`,
+                        className: 'current-location-icon',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    })
+                }).addTo(map);
+
+                // Remove the marker after 5 seconds
+                setTimeout(() => {
+                    map.removeLayer(currentLocationMarker);
+                }, 5000);
+
+                showToast('Showing your current location', 'success');
+                
+                if (locationBtn) {
+                    locationBtn.classList.remove('loading');
+                    locationBtn.style.cursor = 'pointer';
+                }
             },
-            () => showToast('Could not get your location.', 'error'),
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+            (error) => {
+                let message = 'Could not get your location.';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'Location access denied by user.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'Location information is unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'Location request timed out.';
+                        break;
+                }
+                showToast(message, 'error');
+                
+                if (locationBtn) {
+                    locationBtn.classList.remove('loading');
+                    locationBtn.style.cursor = 'pointer';
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
         );
     };
 
@@ -860,6 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIForLanguage();
         setupAppEventListeners();
         setupModalEventListeners();
+        setupMapControlPropagation(); // Add this line
         initMap();
     };
 
