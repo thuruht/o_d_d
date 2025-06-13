@@ -568,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalManager.create('report-destination', t('report_destination'), `<form id="report-destination-form" onsubmit="return false;"><input type="hidden" id="report-location-id"><div class="form-group"><label for="report-reason">${t('report_reason')}</label><input type="text" id="report-reason" class="form-control" required></div><div class="form-group"><label for="report-notes">${t('report_notes')}</label><textarea id="report-notes" class="form-control" rows="3"></textarea></div></form>`, [{ id: 'report-cancel', class: 'btn-secondary', text: t('cancel') }, { id: 'report-submit', class: 'btn-primary', text: t('submit') }]);
         modalManager.create('media-upload', t('media_upload_title'), `<form id="media-upload-form" onsubmit="return false;"><input type="hidden" id="media-location-id"><div class="form-group"><label for="media-files">${t('select_files')}</label><input type="file" id="media-files" class="form-control" multiple accept="image/*,video/*"></div></form>`, [{ id: 'media-cancel', class: 'btn-secondary', text: t('cancel') }, { id: 'media-submit', class: 'btn-primary', text: t('submit') }]);
         modalManager.create('admin-panel', t('admin_panel_title'), `<div class="admin-tabs"><button class="admin-tab active" data-tab="users">Users</button><button class="admin-tab" data-tab="submissions">Submissions</button><button class="admin-tab" data-tab="reports">Reports</button></div><div id="admin-panel-content"></div>`, [{ id: 'admin-close', class: 'btn-secondary', text: t('close') }]);
+        
         modalManager.create('info', t('info_title'), `
             <div class="info-tabs">
                 <button class="info-tab active" data-tab="about">About</button>
@@ -576,14 +577,36 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="info-tab-content active" id="info-tab-about">
                 <p>This is the Overland Destinations Database, an open-source project for travelers to share great places.</p>
-                <div class="info-modal-mascot"><img src="oddyu.png" alt="Oddyseus the Otter" class="mascot-image" onerror="this.style.display='none'"></div>
-                <p>Entries by the "system" user are AI-generated for beta testing only! Please help us by adding your own entries.</p>
+                <p>We have included layers for hiking and cycling trails, railways, and camping sites to help you find the best routes and spots.</p>
+                <p>Please note that this project is in beta. We are still working on features like user profiles, reviews, and media uploads. Let us know how they're working!</p>
+                <div class="info-modal-mascot">
+                    <img src="oddyu.png" alt="Oddyseus the Otter" class="mascot-image" onerror="this.style.display='none'">
+                </div>
+                <p>Entries by the "system" user are a.i. generated for beta testing only! Please help us by adding your own entries and sharing the site with other travelers. :)</p>
             </div>
             <div class="info-tab-content" id="info-tab-contribute">
-                <h1>A Guide to Great Contributions</h1><p>This map is built by travelers like you. Here are a few quick tips to make your contributions awesome.</p><h3>What We Love to See</h3><ul><li><strong>Honest, detailed descriptions.</strong> Your story is what makes a location useful.</li><li><strong>Helpful photos.</strong> A picture of the campsite, the storefront, or the view is perfect.</li><li><strong>Unique and useful spots.</strong> We especially love those hard-to-find places.</li></ul><p>Make your mark <em>on the map</em>, not on the land.</p>
+                <h1>A Guide to Great Contributions</h1>
+                <p>Thank you for helping our community grow! This map is built by travelers like you. Here are a few quick tips to make your contributions awesome.</p>
+                <h3>What We Love to See</h3>
+                <ul>
+                    <li><strong>Honest, detailed descriptions.</strong> The best tips come from personal experience. Tell us <em>why</em> a place was special. Was the view incredible? Did the mechanic have the right part? Was it just a peaceful spot to have lunch? Your story is what makes a location useful.</li>
+                    <li><strong>Helpful photos.</strong> A picture of the campsite, the storefront, or the view is perfect. A picture of your smiling face is also great, but maybe not as the primary photo for the location!</li>
+                    <li><strong>Unique and useful spots.</strong> We especially love those hard-to-find places—a remote water source, a great wild camping spot, or a shop with rare supplies.</li>
+                    <li><strong>Spontaneous joys!</strong> Feel free to add that <strong>Scenic Viewpoint</strong> you stopped at for five minutes or that perfect <strong>Day Use / Picnic Area</strong>. Not every great spot is an overnight stay.</li>
+                </ul>
+                <h3> Travel mindfully: </h3>
+                <p>Make your mark <em>on the map</em>, not on the land, and please, follow the community philosophy and conduct guidelines when you are here.</p>
             </div>
             <div class="info-tab-content" id="info-tab-conduct">
-                <h1>O.D.D.Map Community Philosophy</h1><p>This project is built by and for a global community of travelers. We have three guiding principles.</p><h3>1. Be Kind</h3><p>Treat fellow users, contributors, and the people you meet on your travels with respect.</p><h3>2. Respect the Place</h3><p>Leave places better than you found them.</p><h3>3. Consider the Common Good</h3><p>We have a shared responsibility to protect the natural environments we travel through.</p>
+                <h1>O.D.D.Map Community Philosophy</h1>
+                <p>This project is built by and for a global community of travelers. We have three guiding principles that we ask everyone to share.</p>
+                <h3>1. Be Kind</h3>
+                <p>This is first for a reason. Treat fellow users, contributors, and the people you meet on your travels with respect, patience, and empathy. We are all here to share knowledge and help each other explore the world. There is a zero-tolerance policy for harassment, hate speech, or personal attacks.</p>
+                <h3>2. Respect the Place</h3>
+                <p>Every point on this map is someone's home. Be considerate of local communities, their customs, and their way of life. Ask for permission before camping, especially if the land appears to be actively used by locals. Leave places better than you found them.</p>
+                <h3>Consider the Common Good</h3>
+                <p>We have a shared responsibility to protect the natural environments we travel through. This means packing out all waste, respecting wildlife, and only using designated fire pits when and where it's safe. Do not add places to this map that would encourage environmental damage.</p>
+                <p>This is a community-moderated project. We trust you to contribute responsibly and help us by reporting any content that does not align with these principles. Thank you for being a positive part of our community.</p>
             </div>
         `, [{ id: 'info-close', class: 'btn-secondary', text: t('close') }]);
     };
@@ -707,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     modal.querySelectorAll(`${tabClass}, .admin-tab-content, .info-tab-content`).forEach(el => el.classList.remove('active'));
                     target.classList.add('active');
                     const tabContentId = target.dataset.tab;
-                    const contentEl = modal.querySelector(`#${tabClass.substring(1)}-tab-${tabContentId}`);
+                    const contentEl = modal.querySelector(`#info-tab-${tabContentId}`);
                     if(contentEl) contentEl.classList.add('active');
                 }
             }
@@ -877,7 +900,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const locationBtn = document.getElementById('map-location-btn');
         if (locationBtn) {
             locationBtn.classList.add('loading');
-            locationBtn.style.cursor = 'wait';
         }
 
         showToast('Getting your location...', 'info');
@@ -906,7 +928,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (locationBtn) {
                     locationBtn.classList.remove('loading');
-                    locationBtn.style.cursor = 'pointer';
                 }
             },
             (error) => {
@@ -926,7 +947,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (locationBtn) {
                     locationBtn.classList.remove('loading');
-                    locationBtn.style.cursor = 'pointer';
                 }
             },
             {
@@ -951,7 +971,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && data.length > 0) {
                 map.flyTo([parseFloat(data[0].lat), parseFloat(data[0].lon)], 13);
             } else {
-                showToast(`${t('could_not_find_location')} "${DOMPurify.sanitize(address)}"`, 'info');
+                showToast(`Could not find a location for "${DOMPurify.sanitize(address)}"`, 'info');
             }
         } catch (error) {
             showToast(t('address_lookup_failed'), 'error');
@@ -960,12 +980,697 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ADMIN PANEL ---
 
-    const showAdminPanel = async () => { /* ... (admin panel logic remains the same) ... */ };
-    const renderUsersList = (users) => { /* ... */ };
-    const renderSubmissionsList = (submissions) => { /* ... */ };
-    const renderReportsList = (reports) => { /* ... */ };
-    const setupAdminFilters = (users, submissions, reports) => { /* ... */ };
-    const showUserProfileModal = async (userId) => { /* ... */ };
+    /**
+     * Shows the admin panel with users, submissions, and reports tabs.
+     */
+    const showAdminPanel = async () => {
+        if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'moderator')) {
+            return showToast(t('error_please_login'), 'error');
+        }
+
+        try {
+            showToast('Loading admin data...', 'info');
+            
+            // Fetch all required data in parallel
+            const [users, submissions, reports] = await Promise.all([
+                apiRequest('/admin/users'),
+                apiRequest('/admin/locations/pending'),
+                apiRequest('/admin/reports')
+            ]);
+
+            modalManager.show('admin-panel', modal => {
+                // Set up click handlers for tabs if they don't exist yet
+                const tabsContainer = modal.querySelector('.admin-tabs');
+                if (!tabsContainer.dataset.initialized) {
+                    tabsContainer.dataset.initialized = 'true';
+                    
+                    tabsContainer.addEventListener('click', e => {
+                        if (e.target.classList.contains('admin-tab')) {
+                            // Update active tab
+                            modal.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+                            e.target.classList.add('active');
+                            
+                            // Show corresponding content
+                            const tab = e.target.dataset.tab;
+                            if (tab === 'users') {
+                                renderUsersList(users);
+                            } else if (tab === 'submissions') {
+                                renderSubmissionsList(submissions);
+                            } else if (tab === 'reports') {
+                                renderReportsList(reports);
+                            }
+                        }
+                    });
+                }
+                
+                // Show users tab by default
+                renderUsersList(users);
+                
+                // Set up filters for each data set
+                setupAdminFilters(users, submissions, reports);
+            });
+        } catch (error) {
+            console.error('Failed to load admin data', error);
+            showToast('Failed to load admin data', 'error');
+        }
+    };
+
+    /**
+     * Renders the list of users in the admin panel.
+     * @param {Array} users The list of users.
+     */
+    const renderUsersList = (users) => {
+        const content = document.getElementById('admin-panel-content');
+        if (!content) return;
+        
+        let html = `
+            <div class="admin-filter-bar">
+                <input type="text" id="admin-user-search" placeholder="Search users..." class="form-control">
+                <select id="admin-user-role-filter" class="form-control">
+                    <option value="">All Roles</option>
+                    <option value="user">User</option>
+                    <option value="moderator">Moderator</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="admin-data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (users.length === 0) {
+            html += '<tr><td colspan="5" class="no-data">No users found</td></tr>';
+        } else {
+            users.forEach(user => {
+                const avatarUrl = user.avatar_url || 'https://www.gravatar.com/avatar/?d=mp';
+                const created = new Date(user.created_at).toLocaleDateString();
+                
+                html += `
+                    <tr data-user-id="${user.id}" data-user-role="${user.role}">
+                        <td class="user-cell">
+                            <img src="${DOMPurify.sanitize(avatarUrl)}" alt="${DOMPurify.sanitize(user.username)}'s avatar" class="admin-user-avatar">
+                            <span>${DOMPurify.sanitize(user.username)}</span>
+                        </td>
+                        <td>${DOMPurify.sanitize(user.email)}</td>
+                        <td>
+                            <select class="role-select form-control" data-user-id="${user.id}">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="moderator" ${user.role === 'moderator' ? 'selected' : ''}>Moderator</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                        <td>${created}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary view-user" data-user-id="${user.id}">View</button>
+                            <button class="btn btn-sm btn-danger ban-user" data-user-id="${user.id}">
+                                ${user.is_banned ? 'Unban' : 'Ban'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        content.innerHTML = html;
+        
+        // Add event listeners for user table
+        content.querySelectorAll('.role-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const userId = e.target.dataset.userId;
+                const newRole = e.target.value;
+                
+                try {
+                    await apiRequest(`/admin/users/${userId}/role`, 'PUT', { role: newRole });
+                    showToast('User role updated', 'success');
+                } catch (error) {
+                    // Revert selection on error
+                    const originalRole = e.target.closest('tr').dataset.userRole;
+                    e.target.value = originalRole;
+                }
+            });
+        });
+        
+        content.querySelectorAll('.ban-user').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const userId = e.target.dataset.userId;
+                const isBanned = e.target.textContent.trim() === 'Unban';
+                
+                if (confirm(`Are you sure you want to ${isBanned ? 'unban' : 'ban'} this user?`)) {
+                    try {
+                        await apiRequest(`/admin/users/${userId}/ban`, 'PUT', { 
+                            is_banned: !isBanned 
+                        });
+                        
+                        // Update button text without re-fetching all data
+                        e.target.textContent = isBanned ? 'Ban' : 'Unban';
+                        showToast(`User ${isBanned ? 'unbanned' : 'banned'} successfully`, 'success');
+                    } catch (error) {
+                        // Error toast is shown by apiRequest
+                    }
+                }
+            });
+        });
+        
+        content.querySelectorAll('.view-user').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const userId = e.target.dataset.userId;
+                showUserProfileModal(userId);
+            });
+        });
+        
+        // Add search and filter functionality
+        const searchInput = document.getElementById('admin-user-search');
+        const roleFilter = document.getElementById('admin-user-role-filter');
+        
+        const filterUsers = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const roleValue = roleFilter.value;
+            
+            content.querySelectorAll('tbody tr').forEach(row => {
+                const username = row.querySelector('.user-cell span').textContent.toLowerCase();
+                const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const role = row.dataset.userRole;
+                
+                const matchesSearch = username.includes(searchTerm) || email.includes(searchTerm);
+                const matchesRole = !roleValue || role === roleValue;
+                
+                row.style.display = matchesSearch && matchesRole ? '' : 'none';
+            });
+        };
+        
+        searchInput.addEventListener('input', filterUsers);
+        roleFilter.addEventListener('change', filterUsers);
+    };
+
+    /**
+     * Renders the list of pending submissions in the admin panel.
+     * @param {Array} submissions The list of pending submissions.
+     */
+    const renderSubmissionsList = (submissions) => {
+        const content = document.getElementById('admin-panel-content');
+        if (!content) return;
+        
+        let html = `
+            <div class="admin-filter-bar">
+                <input type="text" id="admin-submission-search" placeholder="Search submissions..." class="form-control">
+                <select id="admin-submission-type-filter" class="form-control">
+                    <option value="">All Types</option>
+                    ${CATEGORIES.map(cat => `<option value="${cat}">${t(cat)}</option>`).join('')}
+                </select>
+            </div>
+            <div class="admin-data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Submitted By</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (submissions.length === 0) {
+            html += '<tr><td colspan="5" class="no-data">No pending submissions</td></tr>';
+        } else {
+            submissions.forEach(sub => {
+                const submittedDate = new Date(sub.created_at).toLocaleDateString();
+                
+                html += `
+                    <tr data-submission-id="${sub.id}" data-submission-type="${sub.type}">
+                        <td>${DOMPurify.sanitize(sub.name)}</td>
+                        <td>${DOMPurify.sanitize(t(sub.type))}</td>
+                        <td>${DOMPurify.sanitize(sub.creator_username || 'Anonymous')}</td>
+                        <td>${submittedDate}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary view-submission" 
+                                    data-submission-id="${sub.id}" 
+                                    data-lat="${sub.latitude}" 
+                                    data-lng="${sub.longitude}">
+                                View
+                            </button>
+                            <button class="btn btn-sm btn-success approve-submission" data-submission-id="${sub.id}">
+                                Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger reject-submission" data-submission-id="${sub.id}">
+                                Reject
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        content.innerHTML = html;
+        
+        // Add event listeners for submission actions
+        content.querySelectorAll('.view-submission').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const submissionId = e.target.dataset.submissionId;
+                const lat = parseFloat(e.target.dataset.lat);
+                const lng = parseFloat(e.target.dataset.lng);
+                
+                // Close the admin panel to show the map
+                modalManager.hide();
+                
+                // Pan to the submission location
+                map.flyTo([lat, lng], 15);
+                
+                // Create a temporary marker to highlight the location
+                if (temporaryMarker) {
+                    map.removeLayer(temporaryMarker);
+                }
+                
+                temporaryMarker = L.marker([lat, lng]).addTo(map);
+                
+                // Fetch and show destination details in a popup
+                fetchAndShowDestinationDetails(submissionId, false);
+            });
+        });
+        
+        content.querySelectorAll('.approve-submission').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const submissionId = e.target.dataset.submissionId;
+                const row = e.target.closest('tr');
+                
+                if (confirm('Are you sure you want to approve this submission?')) {
+                    try {
+                        await apiRequest(`/admin/locations/${submissionId}/approve`, 'PUT');
+                        
+                        // Remove row from table
+                        row.style.animation = 'fadeOut 0.5s';
+                        setTimeout(() => row.remove(), 500);
+                        
+                        showToast('Submission approved', 'success');
+                    } catch (error) {
+                        // Error toast is shown by apiRequest
+                    }
+                }
+            });
+        });
+        
+        content.querySelectorAll('.reject-submission').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const submissionId = e.target.dataset.submissionId;
+                const row = e.target.closest('tr');
+                
+                const reason = prompt('Please provide a reason for rejection (optional):');
+                
+                try {
+                    await apiRequest(`/admin/locations/${submissionId}/reject`, 'PUT', { reason });
+                    
+                    // Remove row from table
+                    row.style.animation = 'fadeOut 0.5s';
+                    setTimeout(() => row.remove(), 500);
+                    
+                    showToast('Submission rejected', 'success');
+                } catch (error) {
+                    // Error toast is shown by apiRequest
+                }
+            });
+        });
+        
+        // Add search and filter functionality
+        const searchInput = document.getElementById('admin-submission-search');
+        const typeFilter = document.getElementById('admin-submission-type-filter');
+        
+        const filterSubmissions = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const typeValue = typeFilter.value;
+            
+            content.querySelectorAll('tbody tr').forEach(row => {
+                const name = row.querySelector('td:first-child').textContent.toLowerCase();
+                const type = row.dataset.submissionType;
+                
+                const matchesSearch = name.includes(searchTerm);
+                const matchesType = !typeValue || type === typeValue;
+                
+                row.style.display = matchesSearch && matchesType ? '' : 'none';
+            });
+        };
+        
+        searchInput.addEventListener('input', filterSubmissions);
+        typeFilter.addEventListener('change', filterSubmissions);
+    };
+
+    /**
+     * Renders the list of reports in the admin panel.
+     * @param {Array} reports The list of reports.
+     */
+    const renderReportsList = (reports) => {
+        const content = document.getElementById('admin-panel-content');
+        if (!content) return;
+        
+        let html = `
+            <div class="admin-filter-bar">
+                <input type="text" id="admin-report-search" placeholder="Search reports..." class="form-control">
+                <select id="admin-report-status-filter" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <div class="admin-data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reported By</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (reports.length === 0) {
+            html += '<tr><td colspan="5" class="no-data">No reports found</td></tr>';
+        } else {
+            reports.forEach(report => {
+                const reportDate = new Date(report.created_at).toLocaleDateString();
+                
+                html += `
+                    <tr data-report-id="${report.id}" data-status="${report.status || 'open'}">
+                        <td>${DOMPurify.sanitize(report.reporter_username || 'Anonymous')}</td>
+                        <td class="report-reason">${DOMPurify.sanitize(report.reason)}</td>
+                        <td>${reportDate}</td>
+                        <td>${report.status === 'closed' ? 'Closed' : 'Open'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary view-reported-location" 
+                                    data-location-id="${report.location_id}">
+                                View Location
+                            </button>
+                            ${report.status !== 'closed' ? `
+                                <button class="btn btn-sm btn-success resolve-report" data-report-id="${report.id}">
+                                    Resolve
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        content.innerHTML = html;
+        
+        // Add event listeners for report actions
+        content.querySelectorAll('.view-reported-location').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const locationId = e.target.dataset.locationId;
+                
+                try {
+                    const location = await apiRequest(`/locations/${locationId}`);
+                    
+                    // Close the admin panel to show the map
+                    modalManager.hide();
+                    
+                    // Pan to the reported location
+                    map.flyTo([location.latitude, location.longitude], 15);
+                    
+                    // Create a temporary marker to highlight the location
+                    if (temporaryMarker) {
+                        map.removeLayer(temporaryMarker);
+                    }
+                    
+                    temporaryMarker = L.marker([location.latitude, location.longitude]).addTo(map);
+                    
+                    // Show destination details in a popup
+                    fetchAndShowDestinationDetails(locationId, false);
+                } catch (error) {
+                    showToast('Could not find the reported location', 'error');
+                }
+            });
+        });
+        
+        content.querySelectorAll('.resolve-report').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const reportId = e.target.dataset.reportId;
+                const row = e.target.closest('tr');
+                
+                if (confirm('Are you sure you want to mark this report as resolved?')) {
+                    try {
+                        await apiRequest(`/admin/reports/${reportId}/resolve`, 'PUT');
+                        
+                        // Update row to show closed status
+                        row.dataset.status = 'closed';
+                        row.querySelector('td:nth-child(4)').textContent = 'Closed';
+                        e.target.remove();
+                        
+                        showToast('Report marked as resolved', 'success');
+                    } catch (error) {
+                        // Error toast is shown by apiRequest
+                    }
+                }
+            });
+        });
+        
+        // Add search and filter functionality
+        const searchInput = document.getElementById('admin-report-search');
+        const statusFilter = document.getElementById('admin-report-status-filter');
+        
+        const filterReports = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            
+            content.querySelectorAll('tbody tr').forEach(row => {
+                const reason = row.querySelector('.report-reason').textContent.toLowerCase();
+                const status = row.dataset.status;
+                
+                const matchesSearch = reason.includes(searchTerm);
+                const matchesStatus = !statusValue || status === statusValue;
+                
+                row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            });
+        };
+        
+        searchInput.addEventListener('input', filterReports);
+        statusFilter.addEventListener('change', filterReports);
+    };
+
+    /**
+     * Sets up admin panel filters for users, submissions, and reports.
+     */
+    const setupAdminFilters = (users, submissions, reports) => {
+        const adminPanel = document.getElementById('modal-admin-panel');
+        if (adminPanel) {
+            const userTab = adminPanel.querySelector('.admin-tab[data-tab="users"]');
+            const submissionsTab = adminPanel.querySelector('.admin-tab[data-tab="submissions"]');
+            const reportsTab = adminPanel.querySelector('.admin-tab[data-tab="reports"]');
+            
+            userTab.textContent = `Users (${users.length})`;
+            submissionsTab.textContent = `Submissions (${submissions.length})`;
+            
+            // Highlight reports tab if there are open reports
+            const openReports = reports.filter(r => r.status !== 'closed').length;
+            reportsTab.textContent = `Reports (${openReports})`;
+            
+            reportsTab.classList.toggle('has-alerts', openReports > 0);
+        }
+    };
+
+    /**
+     * Shows a modal with detailed user profile information.
+     * @param {string|number} userId The ID of the user to show.
+     */
+    const showUserProfileModal = async (userId) => {
+        try {
+            const user = await apiRequest(`/admin/users/${userId}`);
+            
+            const modalId = `user-profile-${user.id}`;
+            const modalTitle = `User Profile: ${user.username}`;
+            
+            // Format dates
+            const createdDate = new Date(user.created_at).toLocaleDateString();
+            const lastLoginDate = user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never';
+            
+            // Calculate account age
+            const accountAge = Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24));
+            
+            // Fetch user's contributions
+            let contributions = { locations: [], reviews: [], media: [], reports: [] };
+            try {
+                contributions = await apiRequest(`/admin/users/${userId}/contributions`);
+            } catch (error) {
+                console.error('Failed to load user contributions', error);
+            }
+            
+            const modalContent = `
+                <div class="user-profile-header">
+                    <img src="${DOMPurify.sanitize(user.avatar_url || 'https://www.gravatar.com/avatar/?d=mp')}" 
+                         alt="${DOMPurify.sanitize(user.username)}'s avatar" 
+                         class="user-profile-avatar">
+                    <div class="user-profile-info">
+                        <h2>${DOMPurify.sanitize(user.username)}</h2>
+                        <div class="user-profile-meta">
+                            <span class="user-role ${user.role}">${user.role}</span>
+                            ${user.is_banned ? '<span class="user-banned">Banned</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="user-profile-details">
+                    <div class="user-profile-section">
+                        <h3>Account Details</h3>
+                        <table class="user-details-table">
+                            <tr><td>Email:</td><td>${DOMPurify.sanitize(user.email)}</td></tr>
+                            <tr><td>Registered:</td><td>${createdDate} (${accountAge} days ago)</td></tr>
+                            <tr><td>Last Login:</td><td>${lastLoginDate}</td></tr>
+                            <tr><td>Bio:</td><td>${DOMPurify.sanitize(user.bio || 'No bio provided')}</td></tr>
+                            <tr><td>Website:</td><td>${user.website ? `<a href="${DOMPurify.sanitize(user.website)}" target="_blank">${DOMPurify.sanitize(user.website)}</a>` : 'None'}</td></tr>
+                            <tr><td>Contact:</td><td>${DOMPurify.sanitize(user.contact || 'None provided')}</td></tr>
+                        </table>
+                    </div>
+                    
+                    <div class="user-profile-section">
+                        <h3>Activity</h3>
+                        <div class="user-stats">
+                            <div class="stat-box">
+                                <div class="stat-value">${contributions.locations?.length || 0}</div>
+                                <div class="stat-label">Locations</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${contributions.reviews?.length || 0}</div>
+                                <div class="stat-label">Reviews</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${contributions.media?.length || 0}</div>
+                                <div class="stat-label">Media</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${contributions.reports?.length || 0}</div>
+                                <div class="stat-label">Reports</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${contributions.locations?.length > 0 ? `
+                    <div class="user-profile-section">
+                        <h3>Recent Contributions</h3>
+                        <ul class="user-contributions-list">
+                            ${contributions.locations.slice(0, 5).map(loc => `
+                                <li>
+                                    <div class="contribution-icon">${CATEGORY_ICONS[loc.type] || CATEGORY_ICONS['other']}</div>
+                                    <div class="contribution-details">
+                                        <strong>${DOMPurify.sanitize(loc.name)}</strong>
+                                        <span class="contribution-type">${DOMPurify.sanitize(t(loc.type))}</span>
+                                        <span class="contribution-date">${new Date(loc.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary view-contribution" 
+                                            data-location-id="${loc.id}" 
+                                            data-lat="${loc.latitude}" 
+                                            data-lng="${loc.longitude}">
+                                        View
+                                    </button>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            const footerButtons = [
+                { id: `close-user-profile-${user.id}`, class: 'btn-secondary', text: 'Close' },
+                { id: `toggle-ban-${user.id}`, class: 'btn-danger', text: user.is_banned ? 'Remove Ban' : 'Ban User' }
+            ];
+
+            modalManager.create(modalId, modalTitle, modalContent, footerButtons);
+            modalManager.show(modalId, (modal) => {
+                // Add event listeners for this specific modal instance
+                modal.querySelector(`#close-user-profile-${user.id}`).addEventListener('click', () => {
+                    modalManager.hide();
+                    showAdminPanel(); // Re-open admin panel
+                });
+
+                modal.querySelector(`#toggle-ban-${user.id}`).addEventListener('click', async (e) => {
+                    const isBanned = e.target.textContent.trim() === 'Remove Ban';
+                    if (confirm(`Are you sure you want to ${isBanned ? 'unban' : 'ban'} this user?`)) {
+                        try {
+                            await apiRequest(`/admin/users/${userId}/ban`, 'PUT', { is_banned: !isBanned });
+                            showToast(`User ${isBanned ? 'unbanned' : 'banned'} successfully`, 'success');
+                            modalManager.hide();
+                            showAdminPanel(); // Refresh admin panel
+                        } catch (error) {
+                            // Error toast is shown by apiRequest
+                        }
+                    }
+                });
+
+                modal.querySelectorAll('.view-contribution').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const locationId = e.currentTarget.dataset.locationId;
+                        const lat = parseFloat(e.currentTarget.dataset.lat);
+                        const lng = parseFloat(e.currentTarget.dataset.lng);
+                        
+                        modalManager.hide();
+                        
+                        map.flyTo([lat, lng], 15);
+                        
+                        if (temporaryMarker) {
+                            map.removeLayer(temporaryMarker);
+                        }
+                        
+                        temporaryMarker = L.marker([lat, lng]).addTo(map);
+                        
+                        fetchAndShowDestinationDetails(locationId, false);
+                    });
+                });
+            });
+        } catch (error) {
+            console.error('Failed to load user profile', error);
+            showToast('Failed to load user profile', 'error');
+        }
+    };
+
+    /**
+     * Prevents click events on map controls from propagating to the map.
+     */
+    const setupMapControlPropagation = () => {
+        const mapContainer = document.getElementById('map-container');
+        if (!mapContainer) return;
+
+        const controls = mapContainer.querySelectorAll('.leaflet-control-container, .map-controls-container');
+
+        controls.forEach(controlContainer => {
+            // Stop propagation for mouse and touch events to prevent map interaction
+            controlContainer.addEventListener('mousedown', (e) => e.stopPropagation());
+            controlContainer.addEventListener('dblclick', (e) => e.stopPropagation());
+            controlContainer.addEventListener('click', (e) => e.stopPropagation());
+            controlContainer.addEventListener('wheel', (e) => e.stopPropagation());
+            controlContainer.addEventListener('touchstart', (e) => e.stopPropagation());
+            controlContainer.addEventListener('touchend', (e) => e.stopPropagation());
+        });
+    };
 
     /**
      * Initializes the entire application.
@@ -977,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIForLanguage();
         setupAppEventListeners();
         setupModalEventListeners();
-        setupMapControlPropagation(); // Add this line
+        setupMapControlPropagation(); // Prevents clicks on controls from affecting the map
         initMap();
     };
 
