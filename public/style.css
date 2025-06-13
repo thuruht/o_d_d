@@ -1,4 +1,3 @@
-// style.css
 @import url('https://fonts.bunny.net/css?family=inter-tight:400,500,700|orbitron:700,900|rajdhani:400,600');
 
 :root {
@@ -1101,7 +1100,9 @@ body {
         padding: 8px;
         margin: -8px;
     }
-}/* --- Admin Panel Styles --- */
+}
+
+/* --- Admin Panel Styles --- */
 
 .admin-filter-bar {
     display: flex;
