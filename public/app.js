@@ -470,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="favorite-btn ${isFavorite ? 'active' : ''}" data-location-id="${dest.id}" aria-label="Favorite this destination">⭐</button>
                 </div>
                 <div class="popup-body">
-                    <div class="popup-meta" data-user-id="${dest.created_by}">
+                    <div class="popup-meta" data-user-id="${dest.created_by}" data-username="${dest.creator_username}">
                         <img src="${DOMPurify.sanitize(creatorAvatar)}" alt="${DOMPurify.sanitize(dest.creator_username)}'s avatar">
                         <span>Added by ${DOMPurify.sanitize(dest.creator_username)}</span>
                     </div>
@@ -497,7 +497,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (e.target.matches('.favorite-btn')) handleFavoriteClick(e);
                 const userProfile = e.target.closest('.popup-meta');
-                if (userProfile) showUserProfileModal(userProfile.dataset.userId);
+                if (userProfile) {
+                    const userId = userProfile.dataset.userId;
+                    const username = userProfile.dataset.username;
+                    // Admins see the detailed admin view, others see the public profile.
+                    if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'moderator')) {
+                        showUserProfileModal(userId);
+                    } else {
+                        showPublicProfileModal(username);
+                    }
+                }
             });
         } catch (error) { 
             console.error('Failed to get destination details', error); 
@@ -692,16 +701,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFilters = { types: [], amenities: [] };
             } else if (target.id === 'save-profile-btn') {
                 const avatarFile = document.getElementById('profile-avatar').files[0];
-                let avatar_url = currentUser.avatar_url;
+                const profileData = {
+                    bio: document.getElementById('profile-bio').value,
+                    website: document.getElementById('profile-website').value,
+                    contact: document.getElementById('profile-contact').value,
+                    avatar_url: currentUser.avatar_url
+                };
+
                 if (avatarFile) {
                     try {
-                        const { signedUrl, avatar_url: newUrl } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
-                        await fetch(signedUrl, { method: 'PUT', body: avatarFile });
-                        avatar_url = newUrl;
-                    } catch (error) { showToast(t('avatar_upload_failed'), 'error'); return; }
+                        const { signedUrl, avatar_url } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
+                        await fetch(signedUrl, { method: 'PUT', body: avatarFile, headers: { 'Content-Type': avatarFile.type } });
+                        profileData.avatar_url = avatar_url;
+                    } catch (error) {
+                        showToast(t('avatar_upload_failed'), 'error');
+                        return;
+                    }
                 }
-                const profileData = { bio: document.getElementById('profile-bio').value, website: document.getElementById('profile-website').value, contact: document.getElementById('profile-contact').value, avatar_url };
-                try { await apiRequest('/users/me', 'PUT', profileData); await checkLoginState(); modalManager.hide(); showToast(t('profile_updated'), 'success'); } catch (error) { /* Toast shown by apiRequest */ }
+
+                try {
+                    await apiRequest('/users/me', 'PUT', profileData);
+                    await checkLoginState();
+                    modalManager.hide();
+                    showToast(t('profile_updated'), 'success');
+                } catch (error) { /* Toast shown by apiRequest */ }
             } else if (target.id === 'review-submit') {
                 const payload = { value: parseInt(document.getElementById('review-rating').value, 10), comment: document.getElementById('review-comment').value };
                 const locationId = document.getElementById('review-location-id').value;
@@ -1649,6 +1672,59 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Failed to load user profile', error);
             showToast('Failed to load user profile', 'error');
+        }
+    };
+
+    const showPublicProfileModal = async (username) => {
+        try {
+            const { user, locations } = await apiRequest(`/profiles/${username}`);
+            const modalId = `public-profile-${user.username}`;
+            const modalTitle = `Profile: ${user.username}`;
+
+            const modalContent = `
+                <div class="user-profile-header">
+                    <img src="${DOMPurify.sanitize(user.avatar_url || 'https://www.gravatar.com/avatar/?d=mp')}"
+                         alt="${DOMPurify.sanitize(user.username)}'s avatar"
+                         class="user-profile-avatar">
+                    <div class="user-profile-info">
+                        <h2>${DOMPurify.sanitize(user.username)}</h2>
+                        <p>Member since: ${new Date(user.created_at).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                <div class="user-profile-details">
+                    <div class="user-profile-section">
+                        <h3>Bio</h3>
+                        <p>${DOMPurify.sanitize(user.bio || 'No bio provided.')}</p>
+                    </div>
+                    ${user.website ? `
+                    <div class="user-profile-section">
+                        <h3>Website</h3>
+                        <p><a href="${DOMPurify.sanitize(user.website)}" target="_blank" rel="noopener noreferrer">${DOMPurify.sanitize(user.website)}</a></p>
+                    </div>
+                    ` : ''}
+                    <div class="user-profile-section">
+                        <h3>Contributions (${locations.length})</h3>
+                        <ul class="user-contributions-list">
+                            ${locations.length > 0 ? locations.map(loc => `
+                                <li>
+                                    <div class="contribution-icon">${CATEGORY_ICONS[loc.type] || CATEGORY_ICONS['other']}</div>
+                                    <div class="contribution-details">
+                                        <strong>${DOMPurify.sanitize(loc.name)}</strong>
+                                        <span class="contribution-type">${DOMPurify.sanitize(t(loc.type))}</span>
+                                    </div>
+                                </li>
+                            `).join('') : '<li>No public contributions yet.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            modalManager.create(modalId, modalTitle, modalContent, [{ id: `close-public-profile-${user.id}`, class: 'btn-secondary', text: 'Close' }]);
+            modalManager.show(modalId);
+
+        } catch (error) {
+            showToast('Could not load user profile.', 'error');
+            console.error("Failed to load public profile:", error);
         }
     };
 

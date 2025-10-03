@@ -6,161 +6,49 @@ import { Env } from '../types';
 import { nanoid } from 'nanoid';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { s3Client } from '../utils/s3';
+import { getS3Client } from '../utils/s3';
 
+// Schema for the upload URL request
 const uploadUrlSchema = z.object({
     filename: z.string().min(1).max(255),
-    locationId: z.string().uuid(),
+    contentType: z.string().startsWith('image/').or(z.string().startsWith('video/')),
+    locationId: z.string(),
 });
 
 const media = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
 media.use('*', authMiddleware);
 
-// Direct upload endpoint
-media.post('/upload', zValidator('json', uploadUrlSchema), async (c) => {
+// POST /api/media/upload-url - Get a presigned URL for media upload
+media.post('/upload-url', zValidator('json', uploadUrlSchema), async (c) => {
     const user = c.get('currentUser');
-    const { filename, locationId } = c.req.valid('json');
-    
+    const { filename, contentType, locationId } = c.req.valid('json');
+
     if (!user) {
         return c.json({ error: 'Unauthorized' }, 401);
     }
-    
+
     try {
-        // Generate unique key for the media file
-        const key = `locations/${locationId}/${user.id}/${nanoid()}-${filename}`;
-        
-        // Return the key for frontend to use with direct upload
+        const s3 = getS3Client(c.env);
         const mediaId = crypto.randomUUID();
+        const key = `locations/${locationId}/${user.id}/${mediaId}-${nanoid()}`;
         
-        // Store pending media record
+        const command = new PutObjectCommand({
+            Bucket: c.env.R2_BUCKET_NAME,
+            Key: key,
+            ContentType: contentType,
+        });
+
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
+
+        // Create a pending media record in the database
         await c.env.DB.prepare(
-            'INSERT INTO media (id, location_id, user_id, file_key, original_filename, status) VALUES (?, ?, ?, ?, ?, ?)'
-        ).bind(mediaId, locationId, user.id, key, filename, 'pending').run();
-        
-        return c.json({ 
-            mediaId,
-            key,
-            message: 'Media record created, proceed with direct upload'
-        });
+            'INSERT INTO media (id, user_id, location_id, file_key, original_filename, content_type, status) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        ).bind(mediaId, user.id, locationId, key, filename, contentType, 'pending').run();
+
+        return c.json({ signedUrl, mediaId });
     } catch (error) {
-        console.error('Error creating media record:', error);
-        return c.json({ error: 'Failed to create media record' }, 500);
-    }
-});
-
-// Handle direct file upload
-media.post('/upload-direct', async (c) => {
-    const user = c.get('currentUser');
-    
-    if (!user) {
-        return c.json({ error: 'Unauthorized' }, 401);
-    }
-    
-    try {
-        const formData = await c.req.formData();
-        const file = formData.get('file') as File;
-        const locationId = formData.get('locationId') as string;
-        const caption = formData.get('caption') as string;
-        
-        if (!file) {
-            return c.json({ error: 'No file provided' }, 400);
-        }
-
-        const mediaId = crypto.randomUUID();
-        const key = `locations/${locationId}/${user.id}/${nanoid()}-${file.name}`;
-        
-        // Upload directly to R2
-        await c.env.MEDIA_BUCKET.put(key, file.stream(), {
-            httpMetadata: {
-                contentType: file.type,
-            },
-            customMetadata: {
-                'uploaded-by': user.id,
-                'location-id': locationId,
-                'original-filename': file.name
-            }
-        });
-        
-        // Store record in database
-        await c.env.DB.prepare(
-            'INSERT INTO media (id, location_id, user_id, file_key, original_filename, caption, content_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        ).bind(mediaId, locationId, user.id, key, file.name, caption || null, file.type, 'pending').run();
-
-        return c.json({
-            mediaId,
-            message: 'Media uploaded successfully and submitted for review',
-            filename: file.name
-        });
-    } catch (error) {
-        console.error('Error uploading media:', error);
-        return c.json({ error: 'Failed to upload media' }, 500);
-    }
-});
-
-// Confirm upload completion (for frontend to call after successful upload)
-media.post('/confirm-upload', async (c) => {
-    const user = c.get('currentUser');
-    const { mediaId, caption } = await c.req.json();
-    
-    if (!user) {
-        return c.json({ error: 'Unauthorized' }, 401);
-    }
-    
-    try {
-        // Update media record with caption and mark as uploaded
-        const result = await c.env.DB.prepare(
-            'UPDATE media SET caption = ?, status = ? WHERE id = ? AND user_id = ?'
-        ).bind(caption || null, 'pending', mediaId, user.id).run();
-        
-        if (result.changes === 0) {
-            return c.json({ error: 'Media not found or unauthorized' }, 404);
-        }
-        
-        return c.json({ message: 'Media submitted for review' });
-    } catch (error) {
-        console.error('Error confirming upload:', error);
-        return c.json({ error: 'Failed to confirm upload' }, 500);
-    }
-});
-
-// Presigned URL endpoint for direct S3 upload
-media.post('/presign-url', async (c) => {
-    const user = c.get('currentUser');
-    const { filename, locationId } = await c.req.json();
-    
-    if (!user) {
-        return c.json({ error: 'Unauthorized' }, 401);
-    }
-    
-    try {
-        const mediaId = crypto.randomUUID();
-        const key = `locations/${locationId}/${user.id}/${nanoid()}-${filename}`;
-        const contentType = 'image/jpeg'; // or derive from filename extension
-        
-        // Get presigned URL from S3
-        const signedUrl = await getSignedUrl(
-            s3Client, 
-            new PutObjectCommand({
-                Bucket: process.env.AWS_BUCKET_NAME,
-                Key: key,
-                ContentType: contentType,
-            }),
-            { method: 'PUT' }  // Add this parameter
-        );
-        
-        // Store pending media record
-        await c.env.DB.prepare(
-            'INSERT INTO media (id, location_id, user_id, file_key, original_filename, status) VALUES (?, ?, ?, ?, ?, ?)'
-        ).bind(mediaId, locationId, user.id, key, filename, 'pending').run();
-        
-        return c.json({ 
-            mediaId,
-            url: signedUrl,
-            message: 'Media record created, URL generated for direct upload'
-        });
-    } catch (error) {
-        console.error('Error generating presigned URL:', error);
+        console.error('Error generating presigned URL for media:', error);
         return c.json({ error: 'Failed to generate presigned URL' }, 500);
     }
 });

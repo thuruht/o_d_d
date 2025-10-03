@@ -13,6 +13,7 @@ import reportsRouter from './api/reports';
 import submissionsRouter from './api/submissions';
 import votingRouter from './api/voting';
 import favoritesRouter from './api/favorites';
+import profilesRouter from './api/profiles';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -66,6 +67,7 @@ app.route('/api/reports', reportsRouter);
 app.route('/api/submissions', submissionsRouter);
 app.route('/api/votes', votingRouter);
 app.route('/api/favorites', favoritesRouter);
+app.route('/api/profiles', profilesRouter);
 
 // Static file serving using Workers Assets binding
 app.use('/*', serveStatic({ 
