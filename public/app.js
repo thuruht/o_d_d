@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cellular: { label: 'Cell Signal', type: 'select', options: ['none', '1g/2g', '3g', '4g/lte', '5g'] },
         pet_friendly: { label: 'Pet Friendly', type: 'boolean' },
         tent_friendly: { label: 'Tent Friendly', type: 'boolean' },
-        opens_24_7: { label: 'Open 24/7', type: 'boolean' },
+        open_24_7: { label: 'Open 24/7', type: 'boolean' },
     };
 
     const CATEGORY_ICONS = {
@@ -74,6 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'consulate-embassy': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-building-arch" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21h18" /><path d="M4 21v-15a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v15" /><path d="M9 21v-8a3 3 0 0 1 6 0v8" /></svg>`,
         'warning': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>`,
         'other': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-question-mark" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4" /><path d="M12 19l0 .01" /></svg>`,
+        'pet_friendly': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-dog-bowl" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12l-.235 .235a3.536 3.536 0 1 0 5.018 -4.928l-4.783 4.693" /><path d="M20 12c0 4.418 -3.582 8 -8 8s-8 -3.582 -8 -8c0 -4.32 3.46 -7.834 7.749 -7.994l.251 .004" /></svg>`,
+        'tent_friendly': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-tent" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11 14l4 6h-8l4 -6" /><path d="M12 14v-11l-3 3" /><path d="M12 3l3 3" /><path d="M11.25 20.25l-6.25 -10.25l14 0l-6.222 10.222" /></svg>`,
+        'open_24_7': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock-hour-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 12h3.5" /><path d="M12 7v5" /></svg>`,
     };
 
     const translations = {
@@ -112,6 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'uploaded_for_review': 'uploaded for review.',
             'could_not_find_location': 'Could not find a location for',
             'address_lookup_failed': 'Address lookup failed.',
+            'pet_friendly': 'Pet Friendly',
+            'tent_friendly': 'Tent Friendly',
+            'open_24_7': 'Open 24/7',
         },
         es: {
             login: 'Iniciar Sesión', register: 'Registrarse', add_destination: 'Añadir Destino', admin: 'Admin', logout: 'Cerrar Sesión',
@@ -148,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'uploaded_for_review': 'subido para revisión.',
             'could_not_find_location': 'No se pudo encontrar una ubicación para',
             'address_lookup_failed': 'Falló la búsqueda de dirección.',
+            'pet_friendly': 'Admite Mascotas',
+            'tent_friendly': 'Admite Tiendas',
+            'open_24_7': 'Abierto 24/7',
         },
         fr: {
             login: 'Connexion', register: 'S\'inscrire', add_destination: 'Ajouter Destin', admin: 'Admin', logout: 'Déconnexion',
@@ -184,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'uploaded_for_review': 'téléchargé pour examen.',
             'could_not_find_location': 'Impossible de trouver un emplacement pour',
             'address_lookup_failed': 'Échec de la recherche d\'adresse.',
+            'pet_friendly': 'Animaux Autorisés',
+            'tent_friendly': 'Tentes Autorisées',
+            'open_24_7': 'Ouvert 24/7',
         }
     };
 
@@ -470,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="favorite-btn ${isFavorite ? 'active' : ''}" data-location-id="${dest.id}" aria-label="Favorite this destination">⭐</button>
                 </div>
                 <div class="popup-body">
-                    <div class="popup-meta" data-user-id="${dest.created_by}">
+                    <div class="popup-meta" data-user-id="${dest.created_by}" data-username="${dest.creator_username}">
                         <img src="${DOMPurify.sanitize(creatorAvatar)}" alt="${DOMPurify.sanitize(dest.creator_username)}'s avatar">
                         <span>Added by ${DOMPurify.sanitize(dest.creator_username)}</span>
                     </div>
@@ -497,7 +509,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (e.target.matches('.favorite-btn')) handleFavoriteClick(e);
                 const userProfile = e.target.closest('.popup-meta');
-                if (userProfile) showUserProfileModal(userProfile.dataset.userId);
+                if (userProfile) {
+                    const userId = userProfile.dataset.userId;
+                    const username = userProfile.dataset.username;
+                    // Admins see the detailed admin view, others see the public profile.
+                    if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'moderator')) {
+                        showUserProfileModal(userId);
+                    } else {
+                        showPublicProfileModal(username);
+                    }
+                }
             });
         } catch (error) { 
             console.error('Failed to get destination details', error); 
@@ -559,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = isAmenity ? `filter-amenity-${item}` : `filter-type-${item}`;
             const name = isAmenity ? 'amenity' : 'type';
             const label = isAmenity ? t(AMENITIES_CONFIG[item].label.toLowerCase().replace(/ /g, '_')) : t(item);
-            let iconHtml = !isAmenity ? (CATEGORY_ICONS[item] || CATEGORY_ICONS['other']) : '';
+            const iconHtml = CATEGORY_ICONS[item] || '';
             return `<div class="filter-item">${iconHtml}<input type="checkbox" id="${id}" name="${name}" value="${item}"><label for="${id}">${label}</label></div>`;
         }).join('')}</div>`;
         modalManager.create('filters', t('filter_title'), `<div class="filter-section">${filterGridHTML()}</div>`, [{ id: 'clear-filters', class: 'btn-secondary', text: t('clear_filters') }, { id: 'apply-filters', class: 'btn-primary', text: t('apply_filters') }]);
@@ -692,16 +713,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFilters = { types: [], amenities: [] };
             } else if (target.id === 'save-profile-btn') {
                 const avatarFile = document.getElementById('profile-avatar').files[0];
-                let avatar_url = currentUser.avatar_url;
+                const profileData = {
+                    bio: document.getElementById('profile-bio').value,
+                    website: document.getElementById('profile-website').value,
+                    contact: document.getElementById('profile-contact').value,
+                    avatar_url: currentUser.avatar_url
+                };
+
                 if (avatarFile) {
                     try {
-                        const { signedUrl, avatar_url: newUrl } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
-                        await fetch(signedUrl, { method: 'PUT', body: avatarFile });
-                        avatar_url = newUrl;
-                    } catch (error) { showToast(t('avatar_upload_failed'), 'error'); return; }
+                        const { signedUrl, avatar_url } = await apiRequest('/users/me/avatar-upload-url', 'POST', { contentType: avatarFile.type });
+                        await fetch(signedUrl, { method: 'PUT', body: avatarFile, headers: { 'Content-Type': avatarFile.type } });
+                        profileData.avatar_url = avatar_url;
+                    } catch (error) {
+                        showToast(t('avatar_upload_failed'), 'error');
+                        return;
+                    }
                 }
-                const profileData = { bio: document.getElementById('profile-bio').value, website: document.getElementById('profile-website').value, contact: document.getElementById('profile-contact').value, avatar_url };
-                try { await apiRequest('/users/me', 'PUT', profileData); await checkLoginState(); modalManager.hide(); showToast(t('profile_updated'), 'success'); } catch (error) { /* Toast shown by apiRequest */ }
+
+                try {
+                    await apiRequest('/users/me', 'PUT', profileData);
+                    await checkLoginState();
+                    modalManager.hide();
+                    showToast(t('profile_updated'), 'success');
+                } catch (error) { /* Toast shown by apiRequest */ }
             } else if (target.id === 'review-submit') {
                 const payload = { value: parseInt(document.getElementById('review-rating').value, 10), comment: document.getElementById('review-comment').value };
                 const locationId = document.getElementById('review-location-id').value;
@@ -1649,6 +1684,59 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Failed to load user profile', error);
             showToast('Failed to load user profile', 'error');
+        }
+    };
+
+    const showPublicProfileModal = async (username) => {
+        try {
+            const { user, locations } = await apiRequest(`/profiles/${username}`);
+            const modalId = `public-profile-${user.username}`;
+            const modalTitle = `Profile: ${user.username}`;
+
+            const modalContent = `
+                <div class="user-profile-header">
+                    <img src="${DOMPurify.sanitize(user.avatar_url || 'https://www.gravatar.com/avatar/?d=mp')}"
+                         alt="${DOMPurify.sanitize(user.username)}'s avatar"
+                         class="user-profile-avatar">
+                    <div class="user-profile-info">
+                        <h2>${DOMPurify.sanitize(user.username)}</h2>
+                        <p>Member since: ${new Date(user.created_at).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                <div class="user-profile-details">
+                    <div class="user-profile-section">
+                        <h3>Bio</h3>
+                        <p>${DOMPurify.sanitize(user.bio || 'No bio provided.')}</p>
+                    </div>
+                    ${user.website ? `
+                    <div class="user-profile-section">
+                        <h3>Website</h3>
+                        <p><a href="${DOMPurify.sanitize(user.website)}" target="_blank" rel="noopener noreferrer">${DOMPurify.sanitize(user.website)}</a></p>
+                    </div>
+                    ` : ''}
+                    <div class="user-profile-section">
+                        <h3>Contributions (${locations.length})</h3>
+                        <ul class="user-contributions-list">
+                            ${locations.length > 0 ? locations.map(loc => `
+                                <li>
+                                    <div class="contribution-icon">${CATEGORY_ICONS[loc.type] || CATEGORY_ICONS['other']}</div>
+                                    <div class="contribution-details">
+                                        <strong>${DOMPurify.sanitize(loc.name)}</strong>
+                                        <span class="contribution-type">${DOMPurify.sanitize(t(loc.type))}</span>
+                                    </div>
+                                </li>
+                            `).join('') : '<li>No public contributions yet.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            modalManager.create(modalId, modalTitle, modalContent, [{ id: `close-public-profile-${user.id}`, class: 'btn-secondary', text: 'Close' }]);
+            modalManager.show(modalId);
+
+        } catch (error) {
+            showToast('Could not load user profile.', 'error');
+            console.error("Failed to load public profile:", error);
         }
     };
 
