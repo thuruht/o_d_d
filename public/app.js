@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cellular: { label: 'Cell Signal', type: 'select', options: ['none', '1g/2g', '3g', '4g/lte', '5g'] },
         pet_friendly: { label: 'Pet Friendly', type: 'boolean' },
         tent_friendly: { label: 'Tent Friendly', type: 'boolean' },
-        opens_24_7: { label: 'Open 24/7', type: 'boolean' },
+        open_24_7: { label: 'Open 24/7', type: 'boolean' },
     };
 
     const CATEGORY_ICONS = {
@@ -74,6 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'consulate-embassy': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-building-arch" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21h18" /><path d="M4 21v-15a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v15" /><path d="M9 21v-8a3 3 0 0 1 6 0v8" /></svg>`,
         'warning': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>`,
         'other': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-question-mark" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4" /><path d="M12 19l0 .01" /></svg>`,
+        'pet_friendly': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-dog-bowl" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12l-.235 .235a3.536 3.536 0 1 0 5.018 -4.928l-4.783 4.693" /><path d="M20 12c0 4.418 -3.582 8 -8 8s-8 -3.582 -8 -8c0 -4.32 3.46 -7.834 7.749 -7.994l.251 .004" /></svg>`,
+        'tent_friendly': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-tent" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11 14l4 6h-8l4 -6" /><path d="M12 14v-11l-3 3" /><path d="M12 3l3 3" /><path d="M11.25 20.25l-6.25 -10.25l14 0l-6.222 10.222" /></svg>`,
+        'open_24_7': `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock-hour-3" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 12h3.5" /><path d="M12 7v5" /></svg>`,
     };
 
     const translations = {
@@ -112,6 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'uploaded_for_review': 'uploaded for review.',
             'could_not_find_location': 'Could not find a location for',
             'address_lookup_failed': 'Address lookup failed.',
+            'pet_friendly': 'Pet Friendly',
+            'tent_friendly': 'Tent Friendly',
+            'open_24_7': 'Open 24/7',
         },
         es: {
             login: 'Iniciar Sesión', register: 'Registrarse', add_destination: 'Añadir Destino', admin: 'Admin', logout: 'Cerrar Sesión',
@@ -148,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'uploaded_for_review': 'subido para revisión.',
             'could_not_find_location': 'No se pudo encontrar una ubicación para',
             'address_lookup_failed': 'Falló la búsqueda de dirección.',
+            'pet_friendly': 'Admite Mascotas',
+            'tent_friendly': 'Admite Tiendas',
+            'open_24_7': 'Abierto 24/7',
         },
         fr: {
             login: 'Connexion', register: 'S\'inscrire', add_destination: 'Ajouter Destin', admin: 'Admin', logout: 'Déconnexion',
@@ -184,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'uploaded_for_review': 'téléchargé pour examen.',
             'could_not_find_location': 'Impossible de trouver un emplacement pour',
             'address_lookup_failed': 'Échec de la recherche d\'adresse.',
+            'pet_friendly': 'Animaux Autorisés',
+            'tent_friendly': 'Tentes Autorisées',
+            'open_24_7': 'Ouvert 24/7',
         }
     };
 
@@ -568,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = isAmenity ? `filter-amenity-${item}` : `filter-type-${item}`;
             const name = isAmenity ? 'amenity' : 'type';
             const label = isAmenity ? t(AMENITIES_CONFIG[item].label.toLowerCase().replace(/ /g, '_')) : t(item);
-            let iconHtml = !isAmenity ? (CATEGORY_ICONS[item] || CATEGORY_ICONS['other']) : '';
+            const iconHtml = CATEGORY_ICONS[item] || '';
             return `<div class="filter-item">${iconHtml}<input type="checkbox" id="${id}" name="${name}" value="${item}"><label for="${id}">${label}</label></div>`;
         }).join('')}</div>`;
         modalManager.create('filters', t('filter_title'), `<div class="filter-section">${filterGridHTML()}</div>`, [{ id: 'clear-filters', class: 'btn-secondary', text: t('clear_filters') }, { id: 'apply-filters', class: 'btn-primary', text: t('apply_filters') }]);
