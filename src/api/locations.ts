@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env } from '../types';
 
 const locationSchema = z.object({
     name: z.string().min(1).max(255),
@@ -13,10 +13,11 @@ const locationSchema = z.object({
     properties: z.record(z.any()).optional(),
 });
 
-const locations = new Hono<{ Bindings: Env, Variables: AuthVariables }>(); // Remove export const if present
+const locations = new Hono<{ Bindings: Env }>();
 
-locations.get('/', async (c) => {
+locations.get('/', authMiddleware(), async (c: C) => {
     const { bbox, type, search } = c.req.query();
+    const user = c.get('user');
     
     let query = `
         SELECT l.*, u.username as creator_username, u.avatar_url as creator_avatar_url,
@@ -30,17 +31,7 @@ locations.get('/', async (c) => {
         WHERE l.status = 'approved'
     `;
     
-    const params: any[] = [];
-    
-    // Get user ID from Authorization header for favorite status
-    const authHeader = c.req.header('Authorization');
-    let userId = null;
-    if (authHeader?.startsWith('Bearer ')) {
-        // Extract user ID from token if available
-        // This is a simplified approach - you might want to validate the token
-        userId = 'user-id'; // Replace with actual token validation
-    }
-    params.push(userId);
+    const params: any[] = [user ? user.id : null];
     
     if (bbox) {
         const [minLon, minLat, maxLon, maxLat] = bbox.split(',').map(Number);
@@ -89,8 +80,8 @@ locations.get('/:id', async (c) => {
     }
 });
 
-locations.post('/', authMiddleware, zValidator('json', locationSchema), async (c) => {
-    const user = c.get('currentUser');
+locations.post('/', authMiddleware(), zValidator('json', locationSchema), async (c: C) => {
+    const user = c.get('user');
     const locationData = c.req.valid('json');
     
     if (!user) {

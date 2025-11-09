@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env } from '../types';
 import { uuidv4 } from '../utils/uuid';
 
 const reportSubmissionSchema = z.object({
@@ -16,15 +16,15 @@ const reportSubmissionSchema = z.object({
     path: ["location_id"],
 });
 
-const reports = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+const reports = new Hono<{ Bindings: Env }>();
 
-reports.use('*', authMiddleware);
+reports.use('*', authMiddleware());
 
 reports.post(
     '/', 
     zValidator('json', reportSubmissionSchema),
-    async (c) => {
-        const user = c.get('currentUser');
+    async (c: C) => {
+        const user = c.get('user');
         const { location_id, media_id, vote_id, reason, notes } = c.req.valid('json');
 
         if (!user) {

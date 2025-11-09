@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env } from '../types';
 import { nanoid } from 'nanoid';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
@@ -21,22 +21,13 @@ const avatarUploadSchema = z.object({
     contentType: z.string().startsWith('image/'),
 });
 
-const users = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+const users = new Hono<{ Bindings: Env }>();
 
-users.use('*', authMiddleware);
-
-// GET /api/users/me - Get current user's profile
-users.get('/me', async (c) => {
-    const user = c.get('currentUser');
-    if (!user) {
-        return c.json({ error: 'Unauthorized' }, 401);
-    }
-    return c.json(user);
-});
+users.use('/me*', authMiddleware());
 
 // PUT /api/users/me - Update current user's profile
-users.put('/me', zValidator('json', updateProfileSchema), async (c) => {
-    const user = c.get('currentUser');
+users.put('/me', zValidator('json', updateProfileSchema), async (c: C) => {
+    const user = c.get('user');
     const profileData = c.req.valid('json');
 
     if (!user) {
@@ -62,8 +53,8 @@ users.put('/me', zValidator('json', updateProfileSchema), async (c) => {
 });
 
 // POST /api/users/me/avatar-upload-url - Get a presigned URL for avatar upload
-users.post('/me/avatar-upload-url', zValidator('json', avatarUploadSchema), async (c) => {
-    const user = c.get('currentUser');
+users.post('/me/avatar-upload-url', zValidator('json', avatarUploadSchema), async (c: C) => {
+    const user = c.get('user');
     const { contentType } = c.req.valid('json');
 
     if (!user) {
