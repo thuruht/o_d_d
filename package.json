@@ -6,7 +6,8 @@
     "build": "mkdir -p dist && esbuild src/index.ts --bundle --format=esm --outfile=dist/worker.js --external:nanoid --external:drizzle-orm --external:@hono/zod-validator --external:uuid --external:@aws-sdk/s3-request-presigner --external:@aws-sdk/client-s3",
     "dev": "wrangler dev --local",
     "deploy": "npm run build && wrangler deploy",
-    "start": "wrangler dev"
+    "start": "wrangler dev",
+    "seed": "npx wrangler d1 execute overland-db --remote --file=src/db/migrations/0001_seed_system_user_and_locations.sql"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.828.0",

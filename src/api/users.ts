@@ -25,6 +25,15 @@ const users = new Hono<{ Bindings: Env }>();
 
 users.use('/me*', authMiddleware());
 
+// GET /api/users/me - Get current user's profile
+users.get('/me', (c: C) => {
+    const user = c.get('user');
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
+    return c.json(user);
+});
+
 // PUT /api/users/me - Update current user's profile
 users.put('/me', zValidator('json', updateProfileSchema), async (c: C) => {
     const user = c.get('user');
