@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env } from '../types';
 import { nanoid } from 'nanoid';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
@@ -15,13 +15,13 @@ const uploadUrlSchema = z.object({
     locationId: z.string(),
 });
 
-const media = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+const media = new Hono<{ Bindings: Env }>();
 
-media.use('*', authMiddleware);
+media.use('*', authMiddleware());
 
 // POST /api/media/upload-url - Get a presigned URL for media upload
-media.post('/upload-url', zValidator('json', uploadUrlSchema), async (c) => {
-    const user = c.get('currentUser');
+media.post('/upload-url', zValidator('json', uploadUrlSchema), async (c: C) => {
+    const user = c.get('user');
     const { filename, contentType, locationId } = c.req.valid('json');
 
     if (!user) {

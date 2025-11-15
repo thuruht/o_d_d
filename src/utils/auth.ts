@@ -97,34 +97,12 @@ export async function verifyToken(token: string, secret: string): Promise<AuthPa
 }
 
 /**
- * Hono middleware to protect routes.
- * It checks for a valid session cookie and sets the user context.
- */
-export const requireAuth = async (c: C, next: () => Promise<void>) => {
-    const token = getCookie(c, 'session');
-    
-    if (!token) {
-        return c.json({ error: 'Authentication required' }, 401);
-    }
-
-    try {
-        // The verify function from @hono/jwt will throw an error if the token is invalid or expired.
-        const payload = await verifyToken(token, c.env.JWT_SECRET);
-        
-        c.set('user', payload);
-        await next();
-    } catch (error) {
-        // Catches any error from the verify function (e.g., signature mismatch, expiration).
-        return c.json({ error: 'Invalid or expired session' }, 401);
-    }
-};
-
-/**
  * Middleware to check authentication and optionally verify user roles.
- * Similar to requireAuth but with role-based access control.
+ * It checks for a valid session cookie, verifies the token, and sets the user context.
+ * Role-based access control can be enforced by passing a required role.
  * 
- * @param requiredRole Optional role requirement (admin, moderator)
- * @returns Middleware function that verifies auth and role
+ * @param requiredRole Optional role requirement (e.g., 'admin', 'moderator').
+ * @returns Hono middleware function.
  */
 export const authMiddleware = (requiredRole?: 'admin' | 'moderator') => {
     return async (c: C, next: () => Promise<void>) => {
