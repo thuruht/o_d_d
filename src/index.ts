@@ -29,9 +29,9 @@ app.use('*', async (c, next) => {
         "default-src 'self'; " +
         "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com; " +
         "style-src 'self' https://unpkg.com https://fonts.bunny.net 'unsafe-inline'; " +
-        "img-src 'self' https://*.openstreetmap.org https://*.openstreetmap.de https://*.tile.opentopomap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com https://*.waymarkedtrails.org https://*.tiles.openrailwaymap.org https://*.tile.openstreetmap.org https://opencampingmap.openstreetmap.de https://brewmap.openstreetmap.de https://babykarte.openstreetmap.de data:; " +
+        "img-src 'self' https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://server.arcgisonline.com https://odd-img.distorted.work https://www.gravatar.com https://*.waymarkedtrails.org https://*.tiles.openrailwaymap.org https://opencampingmap.org https://*.overland-storage.distorted.work data:; " +
         "font-src 'self' https://fonts.bunny.net; " +
-        "connect-src 'self' https://nominatim.openstreetmap.org https://829921384c97e0dbbb34430e307d6b52.r2.cloudflarestorage.com https://overpass-api.de; " +
+        "connect-src 'self' https://nominatim.openstreetmap.org https://*.r2.cloudflarestorage.com https://*.overland-storage.distorted.work; " +
         "frame-src 'none'; " +
         "object-src 'none';"
     );

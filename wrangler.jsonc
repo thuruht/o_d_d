@@ -26,7 +26,7 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "odd-db",
+			"database_name": "overland-db",
 			"database_id": "6ae2e65d-a840-4aab-925b-1544d410df33",
 		}
 	],
