@@ -8,6 +8,10 @@ favorites.use('*', authMiddleware);
 
 favorites.get('/', async (c) => {
     const user = c.get('currentUser');
+
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
     
     try {
         const userFavorites = await c.env.DB.prepare(`
