@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { D1Database, R2Bucket, Fetcher } from '@cloudflare/workers-types';
+import { D1Database, R2Bucket, Fetcher, KVNamespace } from '@cloudflare/workers-types';
 import { Context as HonoContext } from 'hono';
 
 export type UserRole = 'user' | 'moderator' | 'admin';
@@ -125,7 +125,8 @@ export const UserProfile = z.object({
 export interface Env {
     ASSETS: Fetcher;
     DB: D1Database;
-    MEDIA_BUCKET: R2Bucket;
+    R2_BUCKET: R2Bucket;
+    AUTH_SESSIONS: KVNamespace;
     JWT_SECRET: string;
     ADMIN_EMAIL: string;
     R2_PUBLIC_URL: string;
