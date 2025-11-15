@@ -6,8 +6,12 @@ const favorites = new Hono<{ Bindings: Env }>();
 
 favorites.use('*', authMiddleware());
 
-favorites.get('/', async (c: C) => {
-    const user = c.get('user');
+favorites.get('/', async (c) => {
+    const user = c.get('currentUser');
+
+    if (!user) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
     
     try {
         const userFavorites = await c.env.DB.prepare(`
