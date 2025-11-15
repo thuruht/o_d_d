@@ -1,20 +1,11 @@
 import { Hono } from 'hono';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env, User, Location, Submission } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env, User, Location, Submission } from '../types';
 import { uuidv4 } from '../utils/uuid';
 
-const admin = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+const admin = new Hono<{ Bindings: Env }>();
 
-admin.use('*', authMiddleware);
-
-// Middleware to check admin/moderator role
-admin.use('*', async (c, next) => {
-    const user = c.get('currentUser');
-    if (!user || (user.role !== 'admin' && user.role !== 'moderator')) {
-        return c.json({ error: 'Insufficient permissions' }, 403);
-    }
-    await next();
-});
+admin.use('*', authMiddleware('admin'));
 
 admin.get('/users', async (c) => {
     try {
@@ -67,9 +58,9 @@ admin.get('/submissions', async (c) => {
     }
 });
 
-admin.post('/submissions/:id/approve', async (c) => {
+admin.post('/submissions/:id/approve', async (c: C) => {
     const { id } = c.req.param();
-    const adminUser = c.get('currentUser');
+    const adminUser = c.get('user');
     
     const submission = await c.env.DB.prepare("SELECT * FROM submissions WHERE id = ? AND status = 'pending'").bind(id).first<Submission>();
     if (!submission) {
@@ -119,10 +110,10 @@ admin.post('/submissions/:id/approve', async (c) => {
     }
 });
 
-admin.post('/submissions/:id/reject', async (c) => {
+admin.post('/submissions/:id/reject', async (c: C) => {
     const { id } = c.req.param();
     const { reason } = await c.req.json<{reason: string}>();
-    const adminUser = c.get('currentUser');
+    const adminUser = c.get('user');
     
     const result = await c.env.DB.prepare("UPDATE submissions SET status = 'rejected', admin_notes = ? WHERE id = ? AND status = 'pending'")
         .bind(`Rejected by ${adminUser.id}: ${reason}`, id).run();
@@ -148,10 +139,10 @@ admin.get('/reports', async (c) => {
     }
 });
 
-admin.post('/reports/:id/resolve', async (c) => {
+admin.post('/reports/:id/resolve', async (c: C) => {
     const { id } = c.req.param();
     const { action } = await c.req.json<{action: string}>();
-    const adminUser = c.get('currentUser');
+    const adminUser = c.get('user');
     
     const result = await c.env.DB.prepare("UPDATE reports SET status = 'resolved', admin_notes = ? WHERE id = ? AND status = 'open'")
         .bind(`Resolved by ${adminUser.id}: ${action}`, id).run();

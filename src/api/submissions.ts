@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env } from '../types';
 
-const submissions = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+const submissions = new Hono<{ Bindings: Env }>();
 
-submissions.use('*', authMiddleware);
+submissions.use('*', authMiddleware());
 
-submissions.get('/', async (c) => {
-    const user = c.get('currentUser');
+submissions.get('/', async (c: C) => {
+    const user = c.get('user');
     
     try {
         const userSubmissions = await c.env.DB.prepare(`
