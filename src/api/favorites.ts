@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
-import { authMiddleware, AuthVariables } from '../utils/auth';
-import { Env } from '../types';
+import { authMiddleware } from '../utils/auth';
+import { C, Env } from '../types';
 
-const favorites = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
+const favorites = new Hono<{ Bindings: Env }>();
 
-favorites.use('*', authMiddleware);
+favorites.use('*', authMiddleware());
 
 favorites.get('/', async (c) => {
     const user = c.get('currentUser');
@@ -30,8 +30,8 @@ favorites.get('/', async (c) => {
     }
 });
 
-favorites.post('/:locationId', async (c) => {
-    const user = c.get('currentUser');
+favorites.post('/:locationId', async (c: C) => {
+    const user = c.get('user');
     const locationId = c.req.param('locationId');
     
     try {
@@ -46,8 +46,8 @@ favorites.post('/:locationId', async (c) => {
     }
 });
 
-favorites.delete('/:locationId', async (c) => {
-    const user = c.get('currentUser');
+favorites.delete('/:locationId', async (c: C) => {
+    const user = c.get('user');
     const locationId = c.req.param('locationId');
     
     try {
