@@ -128,7 +128,7 @@ export const authMiddleware = (requiredRole?: 'admin' | 'moderator') => {
                 }
             }
             
-            c.set('user', payload);
+            c.set('currentUser', payload);
             await next();
         } catch (error) {
             return c.json({ error: 'Invalid or expired session' }, 401);

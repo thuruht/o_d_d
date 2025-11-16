@@ -928,6 +928,10 @@ body {
     flex-shrink: 0;
 }
 
+body.logged-in .nav-brand-container {
+    display: none;
+}
+
 /* Navbar logo styling */
 .navbar-logo {
     height: 40px;

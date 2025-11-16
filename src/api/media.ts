@@ -21,7 +21,7 @@ media.use('*', authMiddleware());
 
 // POST /api/media/upload-url - Get a presigned URL for media upload
 media.post('/upload-url', zValidator('json', uploadUrlSchema), async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const { filename, contentType, locationId } = c.req.valid('json');
 
     if (!user) {

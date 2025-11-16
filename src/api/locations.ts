@@ -17,7 +17,7 @@ const locations = new Hono<{ Bindings: Env }>();
 
 locations.get('/', authMiddleware(), async (c: C) => {
     const { bbox, type, search } = c.req.query();
-    const user = c.get('user');
+    const user = c.get('currentUser');
     
     let query = `
         SELECT l.*, u.username as creator_username, u.avatar_url as creator_avatar_url,
@@ -81,7 +81,7 @@ locations.get('/:id', async (c) => {
 });
 
 locations.post('/', authMiddleware(), zValidator('json', locationSchema), async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const locationData = c.req.valid('json');
     
     if (!user) {
