@@ -103,7 +103,7 @@ authRouter.post('/logout', async (c: C) => {
 });
 
 authRouter.get('/me', authMiddleware(), async (c: C) => {
-    const userPayload = c.get('user');
+    const userPayload = c.get('currentUser');
     const user = await c.env.DB.prepare(
         'SELECT id, username, email, role, created_at FROM users WHERE id = ?'
     ).bind(userPayload.id).first<Omit<User, 'password_hash'>>();

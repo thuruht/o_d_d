@@ -24,7 +24,7 @@ reports.post(
     '/', 
     zValidator('json', reportSubmissionSchema),
     async (c: C) => {
-        const user = c.get('user');
+        const user = c.get('currentUser');
         const { location_id, media_id, vote_id, reason, notes } = c.req.valid('json');
 
         if (!user) {

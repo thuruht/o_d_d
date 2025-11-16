@@ -27,7 +27,7 @@ users.use('/me*', authMiddleware());
 
 // GET /api/users/me - Get current user's profile
 users.get('/me', (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     if (!user) {
         return c.json({ error: 'Unauthorized' }, 401);
     }
@@ -36,7 +36,7 @@ users.get('/me', (c: C) => {
 
 // PUT /api/users/me - Update current user's profile
 users.put('/me', zValidator('json', updateProfileSchema), async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const profileData = c.req.valid('json');
 
     if (!user) {
@@ -63,7 +63,7 @@ users.put('/me', zValidator('json', updateProfileSchema), async (c: C) => {
 
 // POST /api/users/me/avatar-upload-url - Get a presigned URL for avatar upload
 users.post('/me/avatar-upload-url', zValidator('json', avatarUploadSchema), async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const { contentType } = c.req.valid('json');
 
     if (!user) {
