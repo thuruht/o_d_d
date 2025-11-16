@@ -60,7 +60,7 @@ admin.get('/submissions', async (c) => {
 
 admin.post('/submissions/:id/approve', async (c: C) => {
     const { id } = c.req.param();
-    const adminUser = c.get('user');
+    const adminUser = c.get('currentUser');
     
     const submission = await c.env.DB.prepare("SELECT * FROM submissions WHERE id = ? AND status = 'pending'").bind(id).first<Submission>();
     if (!submission) {
@@ -113,7 +113,7 @@ admin.post('/submissions/:id/approve', async (c: C) => {
 admin.post('/submissions/:id/reject', async (c: C) => {
     const { id } = c.req.param();
     const { reason } = await c.req.json<{reason: string}>();
-    const adminUser = c.get('user');
+    const adminUser = c.get('currentUser');
     
     const result = await c.env.DB.prepare("UPDATE submissions SET status = 'rejected', admin_notes = ? WHERE id = ? AND status = 'pending'")
         .bind(`Rejected by ${adminUser.id}: ${reason}`, id).run();
@@ -142,7 +142,7 @@ admin.get('/reports', async (c) => {
 admin.post('/reports/:id/resolve', async (c: C) => {
     const { id } = c.req.param();
     const { action } = await c.req.json<{action: string}>();
-    const adminUser = c.get('user');
+    const adminUser = c.get('currentUser');
     
     const result = await c.env.DB.prepare("UPDATE reports SET status = 'resolved', admin_notes = ? WHERE id = ? AND status = 'open'")
         .bind(`Resolved by ${adminUser.id}: ${action}`, id).run();

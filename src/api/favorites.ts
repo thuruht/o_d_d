@@ -31,7 +31,7 @@ favorites.get('/', async (c) => {
 });
 
 favorites.post('/:locationId', async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const locationId = c.req.param('locationId');
     
     try {
@@ -47,7 +47,7 @@ favorites.post('/:locationId', async (c: C) => {
 });
 
 favorites.delete('/:locationId', async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const locationId = c.req.param('locationId');
     
     try {

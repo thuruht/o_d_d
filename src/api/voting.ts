@@ -6,7 +6,7 @@ import { logError } from '../utils/logging';
 const votingRouter = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
 votingRouter.post('/:locationId', authMiddleware(), async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const locationId = c.req.param('locationId');
     const { value, comment } = await c.req.json<{ value: number, comment?: string }>();
     
@@ -46,7 +46,7 @@ votingRouter.post('/:locationId', authMiddleware(), async (c: C) => {
 });
 
 votingRouter.delete('/:locationId', authMiddleware(), async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     const locationId = c.req.param('locationId');
     
     try {

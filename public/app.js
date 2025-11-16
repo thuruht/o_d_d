@@ -291,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const avatarContainer = document.getElementById('user-avatar-container');
         
         if (user) {
+            document.body.classList.add('logged-in');
             authLinks.classList.add('hidden');
             userLinks.classList.remove('hidden');
             userGreeting.textContent = DOMPurify.sanitize(user.username);
@@ -298,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             avatarContainer.innerHTML = `<img src="${DOMPurify.sanitize(avatarUrl)}" alt="${DOMPurify.sanitize(user.username)}'s avatar">`;
             adminNav.classList.toggle('hidden', user.role !== 'admin' && user.role !== 'moderator');
         } else {
+            document.body.classList.remove('logged-in');
             authLinks.classList.remove('hidden');
             userLinks.classList.add('hidden');
             avatarContainer.innerHTML = '';

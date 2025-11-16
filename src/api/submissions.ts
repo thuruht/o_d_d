@@ -7,7 +7,7 @@ const submissions = new Hono<{ Bindings: Env }>();
 submissions.use('*', authMiddleware());
 
 submissions.get('/', async (c: C) => {
-    const user = c.get('user');
+    const user = c.get('currentUser');
     
     try {
         const userSubmissions = await c.env.DB.prepare(`
