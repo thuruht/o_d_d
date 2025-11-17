@@ -254,10 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkLoginState = async () => {
         try {
             currentUser = await apiRequest('/auth/me', 'GET', null, true);
+            updateUserUI(currentUser);
         } catch (error) {
             currentUser = null;
+            updateUserUI(null);
         }
-        updateUserUI(currentUser);
     };
 
     /**
