@@ -133,6 +133,7 @@ export interface Env {
     R2_ACCESS_KEY_ID: string;
     R2_SECRET_ACCESS_KEY: string;
     R2_ENDPOINT: string;
+    ALLOWED_ORIGINS?: string;
 }
 
 export type C = HonoContext<{ Bindings: Env, Variables: { user: AuthPayload } }>;

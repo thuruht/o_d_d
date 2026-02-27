@@ -41,15 +41,26 @@ app.use('*', async (c, next) => {
 
 // CORS Configuration
 app.use('*', cors({
-    origin: (origin) => {
-        // TODO: IMPORTANT - For production, restrict this to your actual frontend domain(s)!
-        // Example for production:
-        // const allowedOrigins = ['https://yourdomain.com', 'https://www.yourdomain.com'];
-        // if (allowedOrigins.includes(origin)) {
-        //     return origin;
-        // }
-        // return undefined;
-        return origin; // Current permissive setting for development
+    origin: (origin, c) => {
+        const allowedOriginsStr = c.env.ALLOWED_ORIGINS || '';
+        const allowedOrigins = allowedOriginsStr.split(',').map(o => o.trim()).filter(Boolean);
+
+        if (!origin) return undefined; // Should be handled appropriately
+
+        for (const allowedOrigin of allowedOrigins) {
+            if (allowedOrigin.includes('*')) {
+                // Convert wildcard domain to regex (e.g. https://*.distorted.work)
+                const regexStr = '^' + allowedOrigin.replace(/\./g, '\\.').replace(/\*/g, '[^.]+') + '$';
+                const regex = new RegExp(regexStr);
+                if (regex.test(origin)) {
+                    return origin;
+                }
+            } else if (origin === allowedOrigin) {
+                return origin;
+            }
+        }
+
+        return undefined;
     },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-Custom-Auth'],
