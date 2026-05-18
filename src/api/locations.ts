@@ -9,8 +9,18 @@ const locationSchema = z.object({
     description: z.string().max(1000).optional(),
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
-    type: z.enum(['campsite', 'viewpoint', 'water_source', 'trail_head', 'shelter', 'other']),
-    properties: z.record(z.any()).optional(),
+    type: z.enum(['established-campground', 'informal-campsite', 'wild-camping', 'scenic-viewpoint', 'day-use-picnic', 'hotel', 'hostel', 'restaurant', 'mechanic', 'fuel', 'propane', 'water', 'dump-station', 'laundry', 'showers', 'wifi-spot', 'tourist-attraction', 'shopping', 'medical', 'pet-services', 'border-crossing', 'checkpoint', 'warning', 'other']),
+    properties: z.object({
+        wifi: z.enum(['yes', 'no', 'paid']).optional(),
+        cellular: z.enum(['none', '1g/2g', '3g', '4g/lte', '5g']).optional(),
+        toilets: z.enum(['none', 'flush', 'vault', 'pit', 'portable']).optional(),
+        showers: z.enum(['none', 'hot', 'cold', 'paid']).optional(),
+        water: z.enum(['none', 'tap-potable', 'tap-non-potable', 'fountain', 'natural-source']).optional(),
+        power: z.enum(['none', '110v', '220v', 'usb']).optional(),
+        pet_friendly: z.boolean().optional(),
+        tent_friendly: z.boolean().optional(),
+        opens_24_7: z.boolean().optional(),
+    }).optional(),
 });
 
 const locations = new Hono<{ Bindings: Env }>();

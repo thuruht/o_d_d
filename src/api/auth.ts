@@ -1,3 +1,5 @@
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 import { Hono } from 'hono';
 import { setCookie, deleteCookie } from 'hono/cookie';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,15 +9,21 @@ import { createToken, authMiddleware } from '../utils/auth';
 
 const authRouter = new Hono<{ Bindings: Env }>();
 
-authRouter.post('/register', async (c: C) => {
-    const { username, email, password } = await c.req.json();
+const registerSchema = z.object({
+    username: z.string().min(3).max(50),
+    email: z.string().email(),
+    password: z.string().min(8)
+});
 
-    if (!username || !email || !password) {
-        return c.json({ error: 'Username, email, and password are required' }, 400);
-    }
-    if (password.length < 8) {
-        return c.json({ error: 'Password must be at least 8 characters long'}, 400);
-    }
+const loginSchema = z.object({
+    email: z.string().email(),
+    password: z.string()
+});
+
+
+authRouter.post('/register', zValidator('json', registerSchema), async (c: C) => {
+    const { username, email, password } = c.req.valid('json');
+
 
     try {
         const userId = uuidv4();
@@ -41,17 +49,15 @@ authRouter.post('/register', async (c: C) => {
     }
 });
 
-authRouter.post('/login', async (c: C) => {
-    const { email, password } = await c.req.json();
-    if (!email || !password) {
-        return c.json({ error: 'Email and password are required' }, 400);
-    }
+authRouter.post('/login', zValidator('json', loginSchema), async (c: C) => {
+    const { email, password } = c.req.valid('json');
 
     const user = await c.env.DB.prepare(
         'SELECT id, username, password_hash, role, suspended FROM users WHERE email = ?'
     ).bind(email.toLowerCase()).first<User>();
-
+    // Prevent timing attacks by always doing a dummy compare if user is not found
     if (!user || !user.password_hash) {
+        await comparePasswords(password, "$2b$10$dummyhashdummyhashdummyhashdummyhashdummy");
         return c.json({ error: 'Invalid credentials' }, 401);
     }
 

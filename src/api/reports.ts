@@ -35,7 +35,7 @@ reports.post(
 
         try {
             await c.env.DB.prepare(
-                `INSERT INTO reports (id, location_id, media_id, vote_id, reported_by, reason, notes, status) 
+                `INSERT INTO reports (id, location_id, media_id, vote_id, reporter_id, reason, notes, status)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
             ).bind(
                 reportId,

@@ -1,3 +1,5 @@
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 import { Hono } from 'hono';
 import { C, Env, AuthVariables } from '../types';
 import { authMiddleware } from '../utils/auth';
@@ -5,15 +7,18 @@ import { logError } from '../utils/logging';
 
 const votingRouter = new Hono<{ Bindings: Env, Variables: AuthVariables }>();
 
-votingRouter.post('/:locationId', authMiddleware(), async (c: C) => {
+const voteSchema = z.object({
+    value: z.number().int().min(1).max(5),
+    comment: z.string().max(500).optional()
+});
+
+
+votingRouter.post('/:locationId', authMiddleware(), zValidator('json', voteSchema), async (c: C) => {
     const user = c.get('currentUser');
     const locationId = c.req.param('locationId');
-    const { value, comment } = await c.req.json<{ value: number, comment?: string }>();
+    const { value, comment } = c.req.valid('json');
     
-    if (value < 1 || value > 5) {
-        return c.json({ error: 'Vote value must be between 1 and 5' }, 400);
-    }
-    
+
     try {
         const location = await c.env.DB.prepare("SELECT id, created_by FROM locations WHERE id = ?")
             .bind(locationId).first<{id: string, created_by: string}>();

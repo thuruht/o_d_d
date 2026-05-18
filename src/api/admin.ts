@@ -1,9 +1,24 @@
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 import { Hono } from 'hono';
 import { authMiddleware } from '../utils/auth';
 import { C, Env, User, Location, Submission } from '../types';
 import { uuidv4 } from '../utils/uuid';
 
 const admin = new Hono<{ Bindings: Env }>();
+
+const updateRoleSchema = z.object({
+    role: z.enum(['user', 'moderator', 'admin'])
+});
+
+const rejectSchema = z.object({
+    reason: z.string().min(1).max(500)
+});
+
+const resolveSchema = z.object({
+    action: z.string().min(1).max(500)
+});
+
 
 admin.use('*', authMiddleware('admin'));
 
@@ -20,14 +35,11 @@ admin.get('/users', async (c) => {
     }
 });
 
-admin.put('/users/:id', async (c) => {
+admin.put('/users/:id', zValidator('json', updateRoleSchema), async (c) => {
     const userId = c.req.param('id');
-    const { role } = await c.req.json<{ role: string }>();
+    const { role } = c.req.valid('json');
     
-    if (!['user', 'moderator', 'admin'].includes(role)) {
-        return c.json({ error: 'Invalid role' }, 400);
-    }
-    
+
     try {
         const result = await c.env.DB.prepare(
             'UPDATE users SET role = ? WHERE id = ?'
@@ -46,7 +58,7 @@ admin.get('/submissions', async (c) => {
         const submissions = await c.env.DB.prepare(`
             SELECT s.*, u.username as submitter_username 
             FROM submissions s 
-            JOIN users u ON s.submitted_by = u.id 
+            JOIN users u ON s.user_id = u.id
             WHERE s.status = 'pending'
             ORDER BY s.created_at DESC
         `).all();
@@ -74,7 +86,7 @@ admin.post('/submissions/:id/approve', async (c: C) => {
         await c.env.DB.batch([
             c.env.DB.prepare(`INSERT INTO locations (id, name, description, latitude, longitude, type, properties, created_by, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'approved')`)
-                .bind(locationId, data.name, data.description, data.latitude, data.longitude, data.type, JSON.stringify(data.properties || {}), submission.submitted_by),
+                .bind(locationId, data.name, data.description, data.latitude, data.longitude, data.type, JSON.stringify(data.properties || {}), submission.user_id),
             c.env.DB.prepare("UPDATE submissions SET status = 'approved', admin_notes = ? WHERE id = ?")
                 .bind(`Approved by ${adminUser.id}`, id)
         ]);
@@ -110,9 +122,9 @@ admin.post('/submissions/:id/approve', async (c: C) => {
     }
 });
 
-admin.post('/submissions/:id/reject', async (c: C) => {
+admin.post('/submissions/:id/reject', zValidator('json', rejectSchema), async (c: C) => {
     const { id } = c.req.param();
-    const { reason } = await c.req.json<{reason: string}>();
+    const { reason } = c.req.valid('json');
     const adminUser = c.get('currentUser');
     
     const result = await c.env.DB.prepare("UPDATE submissions SET status = 'rejected', admin_notes = ? WHERE id = ? AND status = 'pending'")
@@ -139,13 +151,13 @@ admin.get('/reports', async (c) => {
     }
 });
 
-admin.post('/reports/:id/resolve', async (c: C) => {
+admin.post('/reports/:id/resolve', zValidator('json', resolveSchema), async (c: C) => {
     const { id } = c.req.param();
-    const { action } = await c.req.json<{action: string}>();
+    const { action } = c.req.valid('json');
     const adminUser = c.get('currentUser');
     
-    const result = await c.env.DB.prepare("UPDATE reports SET status = 'resolved', admin_notes = ? WHERE id = ? AND status = 'open'")
-        .bind(`Resolved by ${adminUser.id}: ${action}`, id).run();
+    const result = await c.env.DB.prepare("UPDATE reports SET status = 'resolved', resolved_at = CURRENT_TIMESTAMP, resolved_by = ?, notes = ? WHERE id = ? AND status = 'open'")
+        .bind(adminUser.id, `Resolved action: ${action}`, id).run();
 
     if (result.changes === 0) return c.json({ error: 'Report not found or already processed'}, 404);
     return c.json({ message: 'Report resolved' });

@@ -12,7 +12,7 @@ submissions.get('/', async (c: C) => {
     try {
         const userSubmissions = await c.env.DB.prepare(`
             SELECT * FROM submissions 
-            WHERE submitted_by = ? 
+            WHERE user_id = ?
             ORDER BY created_at DESC
         `).bind(user.id).all();
         
